@@ -9,6 +9,7 @@ import data from "@/data/challenges/challenges.json"
 import { delay } from "@/utils/delay";
 import ProfileWrapperLoading from "@/components/ui/loading/ProfileWrapperLoding";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 const ProfileWrapper = dynamic(() =>
   delay(350).then(() => import("@/components/ui/ProfileWrapper")), {
     loading: () => <ProfileWrapperLoading col gap={0.5} />,
@@ -19,6 +20,7 @@ const ProfileWrapper = dynamic(() =>
 export default function ProfilePage() {
   const user = useUserStore((state) => state.user)
   const setUser = useUserStore((state) => state.setUser)
+  const router = useRouter()
 
   useEffect(() => {
     fetch('/api/user/get')
@@ -47,7 +49,7 @@ export default function ProfilePage() {
               )
             )}
           </ChallengesWrapper>
-          <CostumnChallenge />
+          <CostumnChallenge onClick={() => router.push("/create/challenge")} />
         </ProfileWrapper>
         <ProfileWrapper hFit col xCenter gap={2.5}>
           <img src={user?.image} width={64} height={64} className="rounded-xl" />

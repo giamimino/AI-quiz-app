@@ -7,7 +7,7 @@ const MenuButton = forwardRef<HTMLButtonElement, MenuButtonProps>(
     return (
       <button
         ref={ref}
-        className="w-5 h-5 p-1 flex flex-col justify-between cursor-pointer"
+        className="w-5 h-5 p-1 flex flex-col justify-between cursor-pointer rounded-sm border-1 border-white"
         onClick={open ? onClose : onOpen}
       >
         <motion.span
@@ -35,5 +35,4 @@ const MenuButton = forwardRef<HTMLButtonElement, MenuButtonProps>(
   }
 );
 
-MenuButton.displayName = 'MenuButton'
 export default MenuButton

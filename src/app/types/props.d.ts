@@ -3,3 +3,13 @@ export interface MenuButtonProps {
   onOpen: () => void
   onClose: () => void
 }
+
+export interface CreateChallangeProps {
+  onChoice: (choice: string) => void
+}
+
+export interface DefaultButtonProps {
+  label: string,
+  bg?: string,
+  hoverBg?: string, 
+}
