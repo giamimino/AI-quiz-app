@@ -53,7 +53,6 @@ export default function MenuOpen({
       animate={{
         y: 0,
         opacity: 1,
-        filter: "blur(0)",
         boxShadow: "0px 8px 25px rgba(255,255,255,0.05)",
       }}
       exit={{
