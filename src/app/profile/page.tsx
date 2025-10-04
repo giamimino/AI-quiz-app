@@ -23,6 +23,7 @@ export default function ProfilePage() {
   const router = useRouter()
 
   useEffect(() => {
+    if(user) return
     fetch('/api/user/get')
     .then(res => res.json())
     .then(data => {

@@ -1,4 +1,5 @@
 import { DefaultButtonProps } from "@/app/types/props";
+import { Icon } from "@iconify/react";
 import clsx from "clsx";
 import React, { ButtonHTMLAttributes, DetailedHTMLProps } from "react";
 
@@ -9,6 +10,9 @@ export default function DefaultButton({
   wFit,
   small,
   font,
+  mCenter,
+  icon,
+  noSelect,
   ...rest
 }: DefaultButtonProps &
   DetailedHTMLProps<
@@ -23,11 +27,18 @@ export default function DefaultButton({
         hoverBg ? `hover:bg-${hoverBg}` : "hover:bg-purple-200",
         wFit && "w-fit",
         small ? "px-2 py-1.5 text-xs" : "px-3 py-2",
+        noSelect && "select-none",
+        mCenter && "mx-auto"
       )}
       style={{fontWeight: font ? font : ""}}
       {...rest}
     >
-      {label}
+      {label && (
+        <span>{label}</span>
+      )}
+      {icon && (
+        <Icon icon={icon} />
+      )}
     </button>
   );
 }

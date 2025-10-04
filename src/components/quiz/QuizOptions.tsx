@@ -1,9 +1,18 @@
-import React from 'react'
+import React from "react";
 
-export default function QuizOptions({children}: { children: React.ReactNode }) {
+export default function QuizOptions({
+  children,
+  gap,
+}: {
+  children: React.ReactNode;
+  gap?: number;
+}) {
   return (
-    <div className='grid grid-cols-3 gap-2.5'>
+    <div
+      className="grid grid-cols-3"
+      style={{ gap: gap ? `${gap * 4}px` : "10px" }}
+    >
       {children}
     </div>
-  )
+  );
 }

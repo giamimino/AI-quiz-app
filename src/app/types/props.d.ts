@@ -9,11 +9,14 @@ export interface CreateChallangeProps {
 }
 
 export interface DefaultButtonProps {
-  label: string;
+  label?: string;
   bg?: string;
   hoverBg?: string;
   wFit?: boolean;
   small?: boolean;
+  noSelect?: boolean;
+  mCenter?: boolean,
+  icon?: string
   font?:
     | "100" // thin
     | "200" // extralight
@@ -27,7 +30,9 @@ export interface DefaultButtonProps {
 }
 
 export interface QuizOptionCreateProps {
-  label: string;
+  value: string;
+  onSubmit: (value: string) => void,
+  finished?: boolean
 }
 
 export interface CreateChallengeWrapperProps {
