@@ -5,6 +5,7 @@ export interface Children {
 export interface QuizObject {
   id: string,
   question: string,
+  aiGenerated?: boolean;
   options: string[],
   answer: string,
 }

@@ -16,7 +16,8 @@ export interface DefaultButtonProps {
   small?: boolean;
   noSelect?: boolean;
   mCenter?: boolean,
-  icon?: string
+  icon?: string,
+  xSmall?: boolean,
   font?:
     | "100" // thin
     | "200" // extralight
@@ -27,6 +28,10 @@ export interface DefaultButtonProps {
     | "700" // bold
     | "800" // extrabold
     | "900" // black
+  fixed?: boolean,
+  tlCorner?: boolean,
+  trCorner?: boolean,
+  size?: number
 }
 
 export interface QuizOptionCreateProps {
@@ -38,4 +43,23 @@ export interface QuizOptionCreateProps {
 export interface CreateChallengeWrapperProps {
   col?: boolean,
   gap?: number,
+}
+
+export interface ErrorProps {
+  error: string,
+  handleClose: (error?: string) => void
+}
+
+export interface UserProiflePageProps {
+  params: Promise<{
+    username: string
+  }>
+}
+
+export interface ProfileImageProps {
+  src: string,
+  w?: number,
+  h?: number,
+  alt?: string,
+  r?: number
 }

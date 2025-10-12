@@ -21,7 +21,6 @@ export default function QuizFetcher() {
       .then(data => {
         if (data.success) {
           setLoading(false)
-          console.log(data.res);
           
           const content =
             data.res?.choices?.[0]?.message?.content ||

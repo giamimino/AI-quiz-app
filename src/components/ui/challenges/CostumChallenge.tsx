@@ -12,7 +12,7 @@ export default function CostumnChallenge({
       hover:bg-gray-500 transition"
       {...rest}
     >
-      Costume
+      Custome
     </button>
   );
 }

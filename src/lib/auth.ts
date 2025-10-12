@@ -1,11 +1,11 @@
-import NextAuth from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
+import NextAuth, { DefaultSession } from "next-auth"
 import { prisma } from "./prisma"
 import GitHub from "next-auth/providers/github"
+import { CustomAdapter } from "@/utils/CustomAdapter";
 // import Google from "next-auth/providers/google";
  
 export const { auth, handlers, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: CustomAdapter(prisma),
   providers: [
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID!,

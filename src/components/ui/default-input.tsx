@@ -21,7 +21,7 @@ export default function DefaultInput({
 >) {
   return textarea ? (
     <textarea
-      className={`h-8 rounded-xs outline-none px-2 transition-all duration-200 ${
+      className={`h-8 rounded-xs outline-none px-2 py-0.75 transition-all duration-200 ${
         color ? `text-${color}` : "text-white"
       }
         ${value.trim() ? "border-transparent" : "border border-amber-50"} ${
