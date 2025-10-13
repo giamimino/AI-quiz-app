@@ -24,6 +24,7 @@ export async function POST(req: Request) {
         challenges: {
           select: {
             title: true,
+            description: true,
             topic: true,
             type: true,
           }

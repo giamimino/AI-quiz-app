@@ -27,3 +27,7 @@ export interface Reactions {
   favorites: number,
   dislikes: number,
 }
+
+export interface Challenge {
+  
+}

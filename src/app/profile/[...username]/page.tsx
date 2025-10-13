@@ -1,7 +1,6 @@
 "use client";
 import { UserProiflePageProps } from "@/app/types/props";
-import { Challenge } from "@/app/types/store";
-import { user } from "@/app/types/user";
+import { Challenge, user } from "@/app/types/user";
 import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import ProfileImage from "@/components/ui/ProfileImage";
@@ -15,7 +14,7 @@ export default function UserProfilePage({ params }: UserProiflePageProps) {
   const { username } = use(params);
   const [userData, setUserData] = useState<user | null>(null);
   const [messages, setMessages] = useState<string[]>([]);
-  const [challenges, setChallenges] = useState<Challenge[]>([]) // incorrect type there have to fix
+  const [challenges, setChallenges] = useState<Challenge[]>([])
 
   useEffect(() => {
     if (!username) return;

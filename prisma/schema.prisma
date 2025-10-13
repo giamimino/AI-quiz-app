@@ -66,23 +66,26 @@ model Challenge {
 
 model Question {
   id          String   @id @default(cuid())
-  text        String
+  question    String
   aiGenerated Boolean  @default(false)
   challengeId String
   challenge   Challenge @relation(fields: [challengeId], references: [id])
   options     Option[]
 
   Answer Answer[]
+
+  @@index([challengeId])
 }
 
 model Option {
   id         String   @id @default(cuid())
-  text       String
+  option     String
   isCorrect  Boolean
   questionId String
   question   Question @relation(fields: [questionId], references: [id])
 
   Answer Answer[]
+  @@index([questionId])
 }
 
 model Attempt {
@@ -97,6 +100,9 @@ model Attempt {
   user        User      @relation(fields: [userId], references: [id])
   challenge   Challenge @relation(fields: [challengeId], references: [id])
   answers     Answer[]
+
+  @@index([userId])
+  @@index([challengeId])
 }
 
 model Answer {
@@ -120,6 +126,9 @@ model Reaction {
 
   user        User          @relation(fields: [userId], references: [id])
   challenge   Challenge     @relation(fields: [challengeId], references: [id])
+
+  @@index([userId])
+  @@index([challengeId])
 }
 
 enum ChallengeType {

@@ -9,34 +9,41 @@ import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import Loading from "@/components/ui/loading/Loading";
 import {
-  CHALLANGE_NO_OPTION_ERROR,
   CHALLANGE_QUIZ_LIMIT_ERROR,
   CHALLANGE_SAME_OPTION_ERROR,
   CHALlENGE_QUIZZES_GENERATE_ERROR,
-  GENERIC_ERROR,
-  NETWORK_ERROR,
 } from "@/constants/errors";
 import { useSmoothScroll } from "@/hooks/useSmoothScroll";
+import { useUserStore } from "@/zustand/useUserStore";
 import { Icon } from "@iconify/react";
 import clsx from "clsx";
 import cuid from "cuid";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import React, { useRef, useState } from "react";
 
 export default function CreateChallenge() {
   const [values, setValues] = useState<QuizObject[]>([
-    { id: cuid(), question: "", options: Array(6).fill(""), answer: "" },
+    {
+      id: cuid(),
+      question: "",
+      aiGenerated: false,
+      options: Array(6).fill(""),
+      answer: "",
+    },
   ]);
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [openAi, setOpenAi] = useState(false);
-  const [loadingAi, setLoadingAi] = useState(false)
+  const [loadingAi, setLoadingAi] = useState(false);
   const limit = 50;
   const scrollToSmooth = useSmoothScroll(1500);
   const quizLenghtTG = useRef<HTMLHeadingElement | null>(null); // TG => means "to generate"
   const quizTopicTG = useRef<HTMLInputElement>(null);
   const quizPromtTG = useRef<HTMLTextAreaElement>(null);
+  const userId = useUserStore((state) => state.user?.id);
+  const router = useRouter()
 
   const handleChangeQuestion = (idx: number, val: string) => {
     const newValues = [...values];
@@ -86,11 +93,32 @@ export default function CreateChallenge() {
     );
   };
 
-  const handleCreateChallenge = () => {
+  const handleCreateChallenge = async () => {
     const validation = handleValidate();
+    console.log({ title, description, questions: values });
+    console.log({ Type: "CUSTOM" });
+    console.log(userId);
+    console.log(values);
+    
+    
+    
+    if (validation) {
+      const res = await fetch("/api/challenge/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challenge: { title, description, questions: values },
+          Type: "CUSTOM",
+          userId,
+        }),
+      });
+      const data = await res.json()
 
-    if(validation) {
-      
+      if(data.success) {
+        router.push('/profile')
+      } else {
+        setMessage(prev => [...prev, data.message])
+      }
     }
   };
 
@@ -106,16 +134,16 @@ export default function CreateChallenge() {
     const subject = quizTopicTG.current?.value;
     const prompt = quizPromtTG.current?.value;
     const length = Number(quizLenghtTG.current?.textContent);
-    
+
     if (!subject || !length) {
-      if(length === 0) {
-        setMessage(prev => [...prev, CHALLANGE_QUIZ_LIMIT_ERROR])
+      if (length === 0) {
+        setMessage((prev) => [...prev, CHALLANGE_QUIZ_LIMIT_ERROR]);
       } else {
         setMessage((prev) => [...prev, CHALlENGE_QUIZZES_GENERATE_ERROR]);
       }
       return;
     }
-    setLoadingAi(true)
+    setLoadingAi(true);
     const res = await fetch("/api/ai/generate/challenge", {
       method: "POST",
       headers: { "Content-Type": "Application/json" },
@@ -124,9 +152,9 @@ export default function CreateChallenge() {
     const data = await res.json();
     if (data.success) {
       console.log(data.res);
-      
+
       const content =
-      data.res?.choices?.[0]?.message?.content ||
+        data.res?.choices?.[0]?.message?.content ||
         data.res?.result?.output_text ||
         "[]";
 
@@ -137,19 +165,26 @@ export default function CreateChallenge() {
 
       try {
         const parsed = JSON.parse(cleaned);
-        const newValues = [...values, ...Array.isArray(parsed) ? parsed : []];
-        if(newValues.length > 50) {
-          setMessage(prev => [...prev, CHALLANGE_QUIZ_LIMIT_ERROR])
+        const newParsed = Array.isArray(parsed) ? parsed.map((p) => ({
+          ...p,
+          aiGenerated: true,
+          id: cuid()
+        })) : []
+        const newValues = [...values, ...newParsed];
+        console.log(newParsed);
+        
+        if (newValues.length > 50) {
+          setMessage((prev) => [...prev, CHALLANGE_QUIZ_LIMIT_ERROR]);
         }
         setValues(newValues);
-        setLoadingAi(false)
-        setOpenAi(false)
+        setLoadingAi(false);
+        setOpenAi(false);
       } catch (err) {
         console.error("Failed to parse AI JSON:", err);
       }
     } else {
-      setLoadingAi(false)
-      setMessage(prev => [...prev, data.message])
+      setLoadingAi(false);
+      setMessage((prev) => [...prev, data.message]);
     }
   };
 
@@ -209,7 +244,11 @@ export default function CreateChallenge() {
                 border border-amber-50 text-white"
               ></textarea>
             </div>
-            <DefaultButton label="Generate" noSelect onClick={handleGenerateQuizzes} />
+            <DefaultButton
+              label="Generate"
+              noSelect
+              onClick={handleGenerateQuizzes}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -349,6 +388,7 @@ export default function CreateChallenge() {
                     id: cuid(),
                     options: Array(6).fill(""),
                     answer: "",
+                    aiGenerated: false,
                   },
                 ]);
                 setTimeout(() => {
