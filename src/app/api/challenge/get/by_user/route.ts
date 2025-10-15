@@ -1,5 +1,6 @@
 import { GENERIC_ERROR } from "@/constants/errors";
 import { prisma } from "@/lib/prisma";
+import { Turret_Road } from "next/font/google";
 import { NextResponse } from "next/server";
 
 function errorResponse(message: string) {
@@ -12,30 +13,49 @@ function errorResponse(message: string) {
 export async function POST(req: Request) {
   try {
     const { 
-      userId 
+      userId,
+      challengeId
     }: { 
-      userId: string 
+      userId: string,
+      challengeId?: string
     } = 
       await req.json()
     if(!userId) return errorResponse(GENERIC_ERROR)
-    const challenges = (await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        challenges: {
-          select: {
-            title: true,
-            description: true,
-            topic: true,
-            type: true,
+
+    let challenges;
+    if(challengeId) {
+      challenges = await prisma.challenge.findUnique({
+        where: { id: challengeId },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          topic: true,
+          type: true
+        }
+      })
+    } else {
+      challenges = (await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          challenges: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              topic: true,
+              type: true,
+            }
           }
         }
-      }
-    }))?.challenges
-
+      }))?.challenges
+    }
+    
     if(!challenges) return errorResponse(GENERIC_ERROR)
 
     return NextResponse.json({
       success: true,
+      newChallenge: challengeId ? true : false,
       challenges
     })
   } catch (err) {

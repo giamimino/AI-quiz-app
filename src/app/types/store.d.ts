@@ -1,7 +1,8 @@
 export interface Challenge {
-  question: string,
-  options: string[],
-  answer: string,
+  title: string,
+  description: string,
+  topic: string,
+  type: "AI" | "CUSTOM"
 }
 
 export interface ChallengeState {

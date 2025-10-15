@@ -17,7 +17,7 @@ model User {
   accounts      Account[]
   birthday     DateTime?
 
-  challenges    Challenge[]    @relation("ChallengeCreator")
+  challenges    Challenge[]     @relation("ChallengeCreator")
   attempts      Attempt[]
   reactions     Reaction[]
  
@@ -55,7 +55,8 @@ model Challenge {
   topic       String?
   type        ChallengeType
   createdBy   String
-  creator     User       @relation("ChallengeCreator", fields: [createdBy], references: [id])
+  creator     User       @relation("ChallengeCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  
   questions   Question[]
   attempts    Attempt[]
   reactions   Reaction[]
@@ -65,14 +66,14 @@ model Challenge {
 }
 
 model Question {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   question    String
-  aiGenerated Boolean  @default(false)
+  aiGenerated Boolean   @default(false)
   challengeId String
-  challenge   Challenge @relation(fields: [challengeId], references: [id])
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  
   options     Option[]
-
-  Answer Answer[]
+  Answer      Answer[]
 
   @@index([challengeId])
 }
@@ -82,9 +83,9 @@ model Option {
   option     String
   isCorrect  Boolean
   questionId String
-  question   Question @relation(fields: [questionId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  Answer Answer[]
+  Answer     Answer[]
   @@index([questionId])
 }
 
@@ -98,7 +99,7 @@ model Attempt {
   finishedAt  DateTime?
 
   user        User      @relation(fields: [userId], references: [id])
-  challenge   Challenge @relation(fields: [challengeId], references: [id])
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
   answers     Answer[]
 
   @@index([userId])
@@ -112,9 +113,9 @@ model Answer {
   optionId   String
   isCorrect  Boolean
 
-  attempt    Attempt  @relation(fields: [attemptId], references: [id])
-  question   Question @relation(fields: [questionId], references: [id])
-  option     Option   @relation(fields: [optionId], references: [id])
+  attempt    Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  option     Option   @relation(fields: [optionId], references: [id], onDelete: Cascade)
 }
 
 model Reaction {
@@ -125,7 +126,7 @@ model Reaction {
   createdAt   DateTime      @default(now())
 
   user        User          @relation(fields: [userId], references: [id])
-  challenge   Challenge     @relation(fields: [challengeId], references: [id])
+  challenge   Challenge     @relation(fields: [challengeId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([challengeId])

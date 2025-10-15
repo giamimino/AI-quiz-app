@@ -63,3 +63,13 @@ export interface ProfileImageProps {
   alt?: string,
   r?: number
 }
+
+export interface ChallangeHeroProps {
+  id: string,
+  title: string,
+  description: string,
+  topic?: string,
+  type: "AI" | "CUSTOM",
+  isDeleting?: boolean,
+  callbackDelete: (id: string) => void
+}

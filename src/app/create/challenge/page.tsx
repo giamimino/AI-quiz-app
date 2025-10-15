@@ -9,6 +9,7 @@ import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import Loading from "@/components/ui/loading/Loading";
 import {
+  CHALLANGE_GENERIC_ERROR,
   CHALLANGE_QUIZ_LIMIT_ERROR,
   CHALLANGE_SAME_OPTION_ERROR,
   CHALlENGE_QUIZZES_GENERATE_ERROR,
@@ -32,9 +33,11 @@ export default function CreateChallenge() {
       answer: "",
     },
   ]);
-  const [title, setTitle] = useState("");
   const [message, setMessage] = useState<string[]>([]);
-  const [description, setDescription] = useState("");
+  const [challenge, setChallenge] = useState<{
+    title: string;
+    description: string;
+  }>({ title: "", description: "" });
   const [openAi, setOpenAi] = useState(false);
   const [loadingAi, setLoadingAi] = useState(false);
   const limit = 50;
@@ -43,8 +46,8 @@ export default function CreateChallenge() {
   const quizTopicTG = useRef<HTMLInputElement>(null);
   const quizPromtTG = useRef<HTMLTextAreaElement>(null);
   const userId = useUserStore((state) => state.user?.id);
-  const router = useRouter()
-
+  const router = useRouter();
+  
   const handleChangeQuestion = (idx: number, val: string) => {
     const newValues = [...values];
     newValues[idx] = { ...newValues[idx], question: val };
@@ -88,37 +91,33 @@ export default function CreateChallenge() {
       questionValidation &&
       optionsValidation &&
       answerValidation &&
-      title.trim() !== "" &&
-      description.trim() !== ""
+      challenge.title.trim() !== "" &&
+      challenge.description.trim() !== ""
     );
   };
 
   const handleCreateChallenge = async () => {
     const validation = handleValidate();
-    console.log({ title, description, questions: values });
-    console.log({ Type: "CUSTOM" });
-    console.log(userId);
-    console.log(values);
-    
-    
-    
+
     if (validation) {
       const res = await fetch("/api/challenge/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          challenge: { title, description, questions: values },
+          challenge: { ...challenge, questions: values },
           Type: "CUSTOM",
           userId,
         }),
       });
-      const data = await res.json()
+      const data = await res.json();
 
-      if(data.success) {
-        router.push('/profile')
+      if (data.success) {
+        router.push(`/profile?c=${data.challengeId}`);
       } else {
-        setMessage(prev => [...prev, data.message])
+        setMessage((prev) => [...prev, data.message]);
       }
+    } else {
+      setMessage(prev => [...prev, CHALLANGE_GENERIC_ERROR])
     }
   };
 
@@ -165,14 +164,15 @@ export default function CreateChallenge() {
 
       try {
         const parsed = JSON.parse(cleaned);
-        const newParsed = Array.isArray(parsed) ? parsed.map((p) => ({
-          ...p,
-          aiGenerated: true,
-          id: cuid()
-        })) : []
+        const newParsed = Array.isArray(parsed)
+          ? parsed.map((p) => ({
+              ...p,
+              aiGenerated: true,
+              id: cuid(),
+            }))
+          : [];
         const newValues = [...values, ...newParsed];
-        console.log(newParsed);
-        
+
         if (newValues.length > 50) {
           setMessage((prev) => [...prev, CHALLANGE_QUIZ_LIMIT_ERROR]);
         }
@@ -269,10 +269,10 @@ export default function CreateChallenge() {
       <ChallengesWrapper gap={0.25} col YCenter>
         <h1 className="text-center">What{"’"}s the title of your challenge?</h1>
         <DefaultInput
-          value={title}
+          value={challenge.title}
           center
           color="white/70"
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => setChallenge(prev => ({ ...prev, title: e.target.value }))}
         />
       </ChallengesWrapper>
       <ChallengesWrapper gap={0.25} col YCenter>
@@ -280,8 +280,8 @@ export default function CreateChallenge() {
           What{"’"}s the description of your challenge?
         </h1>
         <DefaultInput
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          value={challenge.description}
+          onChange={(e) => setChallenge(prev => ({ ...prev, description: e.target.value}))}
           textarea
         />
       </ChallengesWrapper>

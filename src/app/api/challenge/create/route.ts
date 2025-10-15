@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     } = await req.json();
 
     if(!userId || !Type || !challenge) return errorResponse(GENERIC_ERROR)
+    
     const result = await prisma.$transaction(async (tx) => {
       const newChallenge = await tx.challenge.create({
         data: {
