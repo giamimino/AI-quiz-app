@@ -1,22 +1,27 @@
 import { ChallangeHeroProps } from "@/app/types/props";
 import { Icon } from "@iconify/react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 const ChallengeHero = ({
   id,
   title,
+  slug,
   description,
   topic,
   type,
   isDeleting,
   callbackDelete,
 }: ChallangeHeroProps) => {
+  const router = useRouter()
+
   return (
     <div
       className="p-3 relative flex flex-col gap-1.5 
     bg-neutral-800 rounded-sm cursor-pointer min-w-50 max-w-90
     [&_p]:text-white/60 [&_p]:text-wrap"
+      onClick={() => router.push(`/challenge/${slug}?id=${id}`)}
     >
       <div className="absolute top-2 right-2 flex gap-1.5">
         <AnimatePresence initial={false}>

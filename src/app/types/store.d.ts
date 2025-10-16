@@ -1,6 +1,7 @@
 export interface Challenge {
   title: string,
   description: string,
+  slug: string,
   topic: string,
   type: "AI" | "CUSTOM"
 }

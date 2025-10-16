@@ -56,6 +56,12 @@ export interface UserProiflePageProps {
   }>
 }
 
+export interface ChallengePageProps {
+  params: Promise<{
+    slug: string
+  }>
+}
+
 export interface ProfileImageProps {
   src: string,
   w?: number,
@@ -69,7 +75,8 @@ export interface ChallangeHeroProps {
   title: string,
   description: string,
   topic?: string,
+  slug: string,
   type: "AI" | "CUSTOM",
   isDeleting?: boolean,
-  callbackDelete: (id: string) => void
+  callbackDelete: (id: string) => void,
 }

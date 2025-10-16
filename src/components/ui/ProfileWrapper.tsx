@@ -11,6 +11,7 @@ const ProfileWrapper = ({
   hFit,
   xCenter,
   wFull,
+  rel
 }: Children & {
   col?: boolean;
   gap?: number;
@@ -18,7 +19,8 @@ const ProfileWrapper = ({
   p?: number;
   hFit?: boolean,
   wFull?: boolean,
-  xCenter?: boolean
+  xCenter?: boolean,
+  rel?: boolean
 }) =>  {
   return (
     <div
@@ -31,7 +33,8 @@ const ProfileWrapper = ({
         wFull ? "w-full" : "w-fit",
         hFit && "h-fit",
         xCenter && col && "items-center",
-        xCenter && !col && "justify-center"
+        xCenter && !col && "justify-center",
+        rel && "relative"
       )}
       style={{
         gap: gap ? `${gap * 4}px` : undefined,

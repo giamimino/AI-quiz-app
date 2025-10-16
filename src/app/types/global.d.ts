@@ -9,3 +9,12 @@ export interface QuizObject {
   options: string[],
   answer: string,
 }
+
+export interface ChallengeReview {
+  title: string,
+  description: string,
+  topic: string,
+  type: "AI" | "CUSTOM",
+  creator: { name: string, username: true, id: true }
+  createdAt: string,
+}

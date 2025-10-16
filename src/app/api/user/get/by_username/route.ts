@@ -11,11 +11,12 @@ function errorResponse(message: string) {
 
 export async function POST(req: Request) {
   try {
-    const { username }: { username: string } = await req.json();
+    const { username, userId }: { username: string; userId?: string | null } =
+      await req.json();
     if (!username) return errorResponse(GENERIC_ERROR);
 
     const user = await prisma.user.findUnique({
-      where: { username },
+      where: { ...(userId ? { id: userId } : { username }) },
       select: {
         id: true,
         name: true,
@@ -23,22 +24,25 @@ export async function POST(req: Request) {
         image: true,
         birthday: true,
         username: true,
-      }
+      },
     });
 
-    if(!user) return errorResponse(USER_NOT_FOUND_ERROR)
+    if (!user) return errorResponse(USER_NOT_FOUND_ERROR);
 
     const reactions = await prisma.reaction.findMany({
       where: { userId: user?.id },
       select: {
-        type: true
-      }
-    })
+        type: true,
+      },
+    });
 
-    const counts = reactions.reduce((acc, item) => {
-      acc[item.type] = (acc[item.type] || 0) + 1;
-      return acc
-    }, {LIKE: 0, DISLIKE: 0, STAR: 0})
+    const counts = reactions.reduce(
+      (acc, item) => {
+        acc[item.type] = (acc[item.type] || 0) + 1;
+        return acc;
+      },
+      { LIKE: 0, DISLIKE: 0, STAR: 0 }
+    );
 
     return NextResponse.json({
       success: true,
@@ -48,9 +52,9 @@ export async function POST(req: Request) {
           likes: counts.LIKE,
           favorites: counts.STAR,
           dislikes: counts.DISLIKE,
-        }
-      }
-    })
+        },
+      },
+    });
   } catch (err) {
     console.log(err);
     return errorResponse("Something went wrong.");

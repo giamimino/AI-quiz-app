@@ -43,6 +43,7 @@ export async function POST(req: Request) {
               id: true,
               title: true,
               description: true,
+              slug: true,
               topic: true,
               type: true,
             }

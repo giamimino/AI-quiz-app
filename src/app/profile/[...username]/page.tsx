@@ -1,6 +1,7 @@
 "use client";
 import { UserProiflePageProps } from "@/app/types/props";
-import { Challenge, user } from "@/app/types/user";
+import { Challenge } from "@/app/types/store";
+import { user } from "@/app/types/user";
 import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import ProfileImage from "@/components/ui/ProfileImage";
@@ -18,16 +19,21 @@ export default function UserProfilePage({ params }: UserProiflePageProps) {
 
   useEffect(() => {
     if (!username) return;
+    const url = new URL(window.location.href)
+    const id = url.searchParams.get("id") ?? null
     fetch("/api/user/get/by_username", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: username[0] }),
+      body: JSON.stringify({ username: username[0], ...(id ? { userId: id } : {}) }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           setUserData(data.user);
         } else {
+          url.searchParams.delete("id")
+          window.history.replaceState({}, "", url.toString())
+          setMessages(prev => [...prev, data.message])
         }
       });
   }, [username]);
