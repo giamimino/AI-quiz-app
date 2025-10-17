@@ -38,7 +38,12 @@ export default function ChallengePage({ params }: ChallengePageProps) {
     });
   }, [slug, challengeId]);
 
-  if(isPending) return <div className="p-4"><ChallengeLoading /></div>
+  if (isPending)
+    return (
+      <div className="p-4">
+        <ChallengeLoading />
+      </div>
+    );
   return (
     <div className="flex p-4 flex-col">
       <AnimatePresence>
@@ -67,17 +72,14 @@ export default function ChallengePage({ params }: ChallengePageProps) {
           )}
         </span>
         <Title>{challenge?.title}</Title>
-        <p className="text-white/70 max-w-80">
-          {challenge?.description}
-        </p>
+        <p className="text-white/70 max-w-80">{challenge?.description}</p>
         <p className="text-white/70 ">Questions: 5</p>
         <div>
-          <p className="text-white/70 cursor-pointer w-fit">#{challenge?.topic ?? "Math"}</p>
+          <p className="text-white/70 cursor-pointer w-fit">
+            #{challenge?.topic}
+          </p>
         </div>
-        <DefaultButton
-          label="Start"
-          wFit noSelect
-        />
+        <DefaultButton label="Start" wFit noSelect />
         <span className="w-12 h-0.5 rounded-full bg-white/80 mt-4"></span>
         <div className="text-white/80">
           <span>Created by </span>
@@ -98,6 +100,23 @@ export default function ChallengePage({ params }: ChallengePageProps) {
               months[createdAt?.getMonth() as number]
             } ${createdAt?.getFullYear()}`}
           </span>
+        </div>
+        <div
+          className="absolute bottom-5 right-5 flex gap-1.5 items-center 
+        [&_button]:cursor-pointer"
+        >
+          <button>
+            <Icon icon={"mdi:heart-outline"} className="text-red-600" />
+          </button>
+          <button>
+            <Icon icon={"mdi:dislike-outline"} className="text-blue-600" />
+          </button>
+          <button>
+            <Icon
+              icon={"solar:star-line-duotone"}
+              className="text-yellow-500"
+            />
+          </button>
         </div>
       </ProfileWrapper>
     </div>

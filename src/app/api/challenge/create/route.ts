@@ -20,6 +20,7 @@ export async function POST(req: Request) {
       challenge: {
         title: string;
         description: string;
+        topic?: string,
         questions: QuizObject[];
       };
       Type: "AI" | "CUSTOM";
@@ -35,7 +36,8 @@ export async function POST(req: Request) {
           description: challenge.description,
           type: Type,
           slug: challenge.title.trim().replace(/\s+/g, "-").toLowerCase(),
-          createdBy: userId
+          createdBy: userId,
+          topic: challenge.topic
         },
         select: {
           id: true,

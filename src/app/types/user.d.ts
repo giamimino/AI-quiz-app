@@ -1,3 +1,5 @@
+import { Challenge } from "./store"
+
 export interface User {
   name: string,
   image: string,
@@ -19,7 +21,8 @@ export interface user {
   id: string,
   reactions: Reactions,
   username: string,
-  birthday: string
+  birthday: string,
+  challenges: Challenge[]
 }
 
 export interface Reactions {

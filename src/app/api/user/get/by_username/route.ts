@@ -24,6 +24,16 @@ export async function POST(req: Request) {
         image: true,
         birthday: true,
         username: true,
+        challenges: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            slug: true,
+            topic: true,
+            type: true
+          }
+        }
       },
     });
 

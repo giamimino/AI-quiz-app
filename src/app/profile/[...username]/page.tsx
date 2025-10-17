@@ -2,6 +2,8 @@
 import { UserProiflePageProps } from "@/app/types/props";
 import { Challenge } from "@/app/types/store";
 import { user } from "@/app/types/user";
+import ChallengeHero from "@/components/ui/challenges/Challenge-hero";
+import ChallengesWrapper from "@/components/ui/challenges/ChallengesWrapper";
 import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import ProfileImage from "@/components/ui/ProfileImage";
@@ -30,13 +32,20 @@ export default function UserProfilePage({ params }: UserProiflePageProps) {
       .then((data) => {
         if (data.success) {
           setUserData(data.user);
+          setChallenges(data.user.challenges)
         } else {
-          url.searchParams.delete("id")
-          window.history.replaceState({}, "", url.toString())
           setMessages(prev => [...prev, data.message])
         }
+        url.searchParams.delete("id")
+          window.history.replaceState({}, "", url.toString())
       });
   }, [username]);
+
+  useEffect(() => {
+    if(!userData) return
+
+    fetch
+  }, [userData])
 
   if(!userData?.image) return
 
@@ -88,7 +97,11 @@ export default function UserProfilePage({ params }: UserProiflePageProps) {
       </ProfileWrapper>
       <ProfileWrapper col>
         <Title>Challenges</Title>
-
+        <ChallengesWrapper>
+          {userData.challenges?.map((c) => (
+            <ChallengeHero key={`${c.id}`} {...c}></ChallengeHero>
+          ))}
+        </ChallengesWrapper>
       </ProfileWrapper>
     </div>
   );

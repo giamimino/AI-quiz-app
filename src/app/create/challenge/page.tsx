@@ -37,7 +37,8 @@ export default function CreateChallenge() {
   const [challenge, setChallenge] = useState<{
     title: string;
     description: string;
-  }>({ title: "", description: "" });
+    topic: string
+  }>({ title: "", description: "", topic: "" });
   const [openAi, setOpenAi] = useState(false);
   const [loadingAi, setLoadingAi] = useState(false);
   const limit = 50;
@@ -92,7 +93,8 @@ export default function CreateChallenge() {
       optionsValidation &&
       answerValidation &&
       challenge.title.trim() !== "" &&
-      challenge.description.trim() !== ""
+      challenge.description.trim() !== "" &&
+      challenge.topic.trim() !== ""
     );
   };
 
@@ -259,7 +261,7 @@ export default function CreateChallenge() {
               <Error
                 key={`${m}-${idx}`}
                 error={m}
-                handleClose={(error) =>
+                handleClose={() =>
                   setMessage((prev) => prev.filter((_, index) => index !== idx))
                 }
               />
@@ -273,6 +275,15 @@ export default function CreateChallenge() {
           center
           color="white/70"
           onChange={(e) => setChallenge(prev => ({ ...prev, title: e.target.value }))}
+        />
+      </ChallengesWrapper>
+      <ChallengesWrapper gap={0.25} col YCenter>
+        <h1 className="text-center">What topic will the challenge be about?</h1>
+        <DefaultInput
+          value={challenge.topic}
+          onChange={(e) => setChallenge(prev => ({ ...prev, topic: e.target.value }))}
+          center
+          color="white/70"
         />
       </ChallengesWrapper>
       <ChallengesWrapper gap={0.25} col YCenter>

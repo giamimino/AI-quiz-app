@@ -31,7 +31,9 @@ const ChallengeHero = ({
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{opacity: 0, y: 1}}
-              onClick={() => callbackDelete(id)}
+              {...(callbackDelete ? {
+                onClick: () => callbackDelete(id)
+              } : {})}
             >
               <Icon icon={"basil:trash-outline"} />
             </motion.button>
@@ -47,7 +49,7 @@ const ChallengeHero = ({
       </div>
       <h1 className="text-nowrap font-semibold">{title}</h1>
       <p>{description}</p>
-      {topic && <h2>#{topic}</h2>}
+      {topic && <h2 className="text-white">#{topic}</h2>}
     </div>
   );
 };
