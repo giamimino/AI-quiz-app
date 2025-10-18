@@ -5,7 +5,6 @@ import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import ProfileWrapper from "@/components/ui/ProfileWrapper";
 import Error from "@/components/ui/error";
 import Title from "@/components/ui/title";
-import { GENERIC_ERROR } from "@/constants/errors";
 import { Icon } from "@iconify/react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";

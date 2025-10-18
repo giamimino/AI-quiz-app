@@ -17,7 +17,6 @@ export default function UserProfilePage({ params }: UserProiflePageProps) {
   const { username } = use(params);
   const [userData, setUserData] = useState<user | null>(null);
   const [messages, setMessages] = useState<string[]>([]);
-  const [challenges, setChallenges] = useState<Challenge[]>([])
 
   useEffect(() => {
     if (!username) return;
@@ -32,7 +31,6 @@ export default function UserProfilePage({ params }: UserProiflePageProps) {
       .then((data) => {
         if (data.success) {
           setUserData(data.user);
-          setChallenges(data.user.challenges)
         } else {
           setMessages(prev => [...prev, data.message])
         }

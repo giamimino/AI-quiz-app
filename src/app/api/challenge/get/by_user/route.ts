@@ -1,6 +1,5 @@
 import { GENERIC_ERROR } from "@/constants/errors";
 import { prisma } from "@/lib/prisma";
-import { Turret_Road } from "next/font/google";
 import { NextResponse } from "next/server";
 
 function errorResponse(message: string) {

@@ -12,6 +12,7 @@
     "@auth/prisma-adapter": "^2.10.0",
     "@iconify/react": "^6.0.2",
     "@prisma/client": "^6.16.3",
+    "@upstash/redis": "^1.35.6",
     "clsx": "^2.1.1",
     "cuid": "^3.0.0",
     "framer-motion": "^12.23.22",
