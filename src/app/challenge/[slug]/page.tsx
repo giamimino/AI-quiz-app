@@ -78,7 +78,7 @@ export default function ChallengePage({ params }: ChallengePageProps) {
             #{challenge?.topic}
           </p>
         </div>
-        <DefaultButton label="Start" wFit noSelect />
+        <DefaultButton label="Start" wFit noSelect onClick={() => router.push(`${slug}/start?id=${challengeId}`)} />
         <span className="w-12 h-0.5 rounded-full bg-white/80 mt-4"></span>
         <div className="text-white/80">
           <span>Created by </span>

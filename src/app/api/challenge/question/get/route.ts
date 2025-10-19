@@ -1,6 +1,5 @@
 import { GENERIC_ERROR, QUESTION_GET_ERROR } from "@/constants/errors";
 import { prisma } from "@/lib/prisma";
-import redis from "@/lib/redis";
 import { NextResponse } from "next/server";
 
 function errorResponse(message: string) {
@@ -9,13 +8,13 @@ function errorResponse(message: string) {
     message
   })
 }
+const ids:string[] = []
 
 export async function POST(req: Request) {
   try {
     const { challengeId }: {challengeId: string} = await req.json()
     if(!challengeId) return errorResponse(GENERIC_ERROR)
-    const RedisIdsCacheKey = `questions:${challengeId}`
-    const ids = await redis.get(RedisIdsCacheKey) as string[] ?? []
+
     const question = await prisma.question.findFirst({
       where: { challengeId, id: { notIn: ids } },
       select: {
@@ -32,8 +31,8 @@ export async function POST(req: Request) {
       }
     })
 
-    if(!question ) return errorResponse(QUESTION_GET_ERROR)
-    await redis.set(RedisIdsCacheKey, [...ids, question.id], { ex: 60 * 60 * 12 })
+    if(!question) return errorResponse(QUESTION_GET_ERROR)
+    ids.push(question.id)
     return NextResponse.json({
       success: true,
       question

@@ -18,3 +18,22 @@ export interface ChallengeReview {
   creator: { name: string, username: true, id: true }
   createdAt: string,
 }
+
+export interface Option {
+  id: string,
+  option: string,
+  isCorrect: boolean
+}
+
+export interface Question {
+  id: string,
+  question: string,
+  aiGenerated: boolean,
+  options: Option[]
+}
+
+export interface Answers {
+  questionId: string,
+  optionId: string,
+  isCorrect: boolean,
+}
