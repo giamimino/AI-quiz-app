@@ -130,6 +130,7 @@ model Reaction {
 
   @@index([userId])
   @@index([challengeId])
+  @@unique([challengeId, userId])
 }
 
 enum ChallengeType {

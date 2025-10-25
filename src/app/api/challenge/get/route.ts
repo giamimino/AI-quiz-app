@@ -38,9 +38,17 @@ export async function GET(req: NextRequest) {
     if (!challenge)
       return errorResponse(CHALLANGE_NOT_FOUND_ERROR)
 
+    const isFinished = await prisma.attempt.findFirst({
+      where: { challengeId: challenge.id },
+      select: {
+        finishedAt: true
+      }
+    })
+
     return NextResponse.json({
       success: true,
       challenge,
+      finishedAt: isFinished?.finishedAt
     });
   } catch (err) {
     console.log(err);

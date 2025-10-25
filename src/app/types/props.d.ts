@@ -79,4 +79,5 @@ export interface ChallangeHeroProps {
   type: "AI" | "CUSTOM",
   isDeleting?: boolean,
   callbackDelete?: (id: string) => void,
+  isFinished?: boolean
 }

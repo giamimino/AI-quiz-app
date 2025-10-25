@@ -6,7 +6,7 @@ export default function ErrorsWrapper({ children }: Children) {
   return (
     <motion.div
       className="flex flex-col-reverse gap-2.5 fixed 
-      left-1/4 -translate-x-1/2 top-2 "
+      left-1/4 -translate-x-1/2 top-2 z-99 "
     >
       {children}
     </motion.div>

@@ -31,7 +31,7 @@ export async function POST(req: Request) {
             description: true,
             slug: true,
             topic: true,
-            type: true
+            type: true,
           }
         }
       },

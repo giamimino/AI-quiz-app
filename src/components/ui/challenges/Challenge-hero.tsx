@@ -13,6 +13,7 @@ const ChallengeHero = ({
   type,
   isDeleting,
   callbackDelete,
+  isFinished,
 }: ChallangeHeroProps) => {
   const router = useRouter()
 
@@ -50,6 +51,7 @@ const ChallengeHero = ({
       <h1 className="text-nowrap font-semibold">{title}</h1>
       <p>{description}</p>
       {topic && <h2 className="text-white">#{topic}</h2>}
+      {isFinished && <span className="text-orange-600 absolute bottom-3 right-3 font-medium line-through">Finished</span>}
     </div>
   );
 };

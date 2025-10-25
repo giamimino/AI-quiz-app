@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "./lib/auth"
 
-
-
 const protectedRoutes = ["/profile", "/statistic"]
 
 export default async function middleware(req: NextRequest) {

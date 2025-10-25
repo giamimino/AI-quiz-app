@@ -13,6 +13,11 @@ export const USER_NOT_FOUND_ERROR= "User can't be found.";
 export const CHALLANGE_BACKEND_CREATE_ERROR= "Challange can't be created. please try again.";
 export const CHALLANGE_GENERIC_ERROR= "Something went wrong. please make sure no any empty fields and non selected option";
 export const QUESTION_GET_ERROR= "No any questions left.";
+export const RESULT_REQUEST_ERROR= "Please complete the challenge to see the result";
+// export const _ERROR= "";
+// export const _ERROR= "";
+// export const _ERROR= "";
+// export const _ERROR= "";
 // export const _ERROR= "";
 // export const _ERROR= "";
 // export const _ERROR= "";
@@ -20,3 +25,12 @@ export const QUESTION_GET_ERROR= "No any questions left.";
 // export const _ERROR= "";
 export const CHALLENGE_SUCCESS= "Challenge created successfully.";
 export const CHALLENGE_DELETE_SUCCESS= "Challenge deleted successfully.";
+
+
+
+
+export const ATEMPT_ALREADY_EXIST_WARNING= "Since you’ve already begun this challenge, certain questions may have responses available.";
+// export const _WARNING= "";
+// export const _WARNING= "";
+// export const _WARNING= "";
+// export const _WARNING= "";

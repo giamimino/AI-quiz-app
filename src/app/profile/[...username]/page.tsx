@@ -97,7 +97,7 @@ export default function UserProfilePage({ params }: UserProiflePageProps) {
         <Title>Challenges</Title>
         <ChallengesWrapper>
           {userData.challenges?.map((c) => (
-            <ChallengeHero key={`${c.id}`} {...c}></ChallengeHero>
+            <ChallengeHero key={`${c.id}`} {...c} isFinished={false}></ChallengeHero>
           ))}
         </ChallengesWrapper>
       </ProfileWrapper>
