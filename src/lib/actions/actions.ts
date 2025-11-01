@@ -1,6 +1,7 @@
 "use server";
 import {
   ATTEMPT_DELETE_SUCCESS,
+  CHALLENGE_ACCESS_ERROR,
   CHALLENGE_DELETE_SUCCESS,
   GENERIC_ERROR,
 } from "@/constants/errors";
@@ -742,13 +743,31 @@ export async function requestRandomChallenge({
   }
 }
 
-export async function example({ example }: { example: string }) {
+export async function requestChallengeForEdit({ slug, id, userId }: { slug: string, id?: string, userId?: string }) {
   try {
-    if (!example.trim())
+    if (!slug.trim())
       return {
         success: false,
         message: GENERIC_ERROR,
       };
+
+    const session = userId ? null : await auth()
+    const effectiveUserId = userId ?? session?.user?.id
+
+    const challenge = await prisma.challenge.findUnique({
+      where: {...(id ? { id } : { slug }), createdBy: effectiveUserId },
+    })
+
+    if(!challenge)
+      return {
+        success: false,
+        message: CHALLENGE_ACCESS_ERROR
+      }
+
+    return {
+      success: true,
+      challenge
+    }
   } catch (error) {
     console.log(error);
     return {
@@ -757,3 +776,20 @@ export async function example({ example }: { example: string }) {
     };
   }
 }
+
+// export async function example({ example }: { example: string }) {
+//   try {
+//     if (!example.trim())
+//       return {
+//         success: false,
+//         message: GENERIC_ERROR,
+//       };
+//   } catch (error) {
+//     console.log(error);
+//     return {
+//       success: false,
+//       message: GENERIC_ERROR,
+//     };
+//   }
+// }
+

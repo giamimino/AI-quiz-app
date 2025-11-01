@@ -28,7 +28,7 @@ const ChallengeHero = ({
     ) {
       callbackDelete(id);
     } else if (isEditing) {
-      router.push(`/profile/edit/${slug}`);
+      router.push(`/profile/edit/${slug}?id=${encodeURIComponent(id)}`);
     } else {
       router.push(`/challenge/${slug}?id=${id}`);
     }
