@@ -3,12 +3,14 @@ import {
   ATTEMPT_DELETE_SUCCESS,
   CHALLENGE_ACCESS_ERROR,
   CHALLENGE_DELETE_SUCCESS,
+  CHALLENGE_UPDATE_SUCCESS,
   GENERIC_ERROR,
 } from "@/constants/errors";
 import { prisma } from "../prisma";
 import { Answers } from "@/app/types/global";
 import { auth } from "../auth";
 import { Challenge, TopicState } from "@/app/types/store";
+import { $Enums } from "@prisma/client";
 
 export async function challangeDelete(id: string) {
   try {
@@ -680,8 +682,8 @@ export async function requestRandomChallenge({
         },
         _count: {
           select: {
-            questions: true
-          }
+            questions: true,
+          },
         },
         createdAt: true,
       },
@@ -690,32 +692,31 @@ export async function requestRandomChallenge({
 
     const reactions = await prisma.$transaction(async (tx) => {
       const countLikes = await tx.challenge.findMany({
-        where: { id: { in: challenges.map(c => c.id) } },
+        where: { id: { in: challenges.map((c) => c.id) } },
         select: {
           id: true,
           _count: {
             select: {
-              reactions: { where: { type: "LIKE" } }
-            }
-          }
+              reactions: { where: { type: "LIKE" } },
+            },
+          },
         },
-      })
+      });
 
       const countStars = await tx.challenge.findMany({
-        where: { id: { in: challenges.map(c => c.id) } },
+        where: { id: { in: challenges.map((c) => c.id) } },
         select: {
           id: true,
           _count: {
             select: {
-              reactions: { where: { type: "STAR" } }
-            }
-          }
+              reactions: { where: { type: "STAR" } },
+            },
+          },
         },
-      })
+      });
 
-      return {countLikes, countStars}
-    })
-
+      return { countLikes, countStars };
+    });
 
     if (!challenges)
       return {
@@ -725,14 +726,18 @@ export async function requestRandomChallenge({
 
     return {
       success: true,
-      challenges: challenges.map(c => {
-        let likes = 0
-        let favorites = 0
-        reactions.countLikes.map(cl => cl.id === c.id ? likes = cl._count.reactions : cl )
-        reactions.countStars.map(cl => cl.id === c.id ? favorites = cl._count.reactions : cl )
+      challenges: challenges.map((c) => {
+        let likes = 0;
+        let favorites = 0;
+        reactions.countLikes.map((cl) =>
+          cl.id === c.id ? (likes = cl._count.reactions) : cl
+        );
+        reactions.countStars.map((cl) =>
+          cl.id === c.id ? (favorites = cl._count.reactions) : cl
+        );
 
-        return {...c, likes, favorites}
-      })
+        return { ...c, likes, favorites };
+      }),
     };
   } catch (error) {
     console.log(error);
@@ -743,7 +748,15 @@ export async function requestRandomChallenge({
   }
 }
 
-export async function requestChallengeForEdit({ slug, id, userId }: { slug: string, id?: string, userId?: string }) {
+export async function requestChallengeForEdit({
+  slug,
+  id,
+  userId,
+}: {
+  slug: string;
+  id?: string;
+  userId?: string;
+}) {
   try {
     if (!slug.trim())
       return {
@@ -751,23 +764,77 @@ export async function requestChallengeForEdit({ slug, id, userId }: { slug: stri
         message: GENERIC_ERROR,
       };
 
-    const session = userId ? null : await auth()
-    const effectiveUserId = userId ?? session?.user?.id
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
 
     const challenge = await prisma.challenge.findUnique({
-      where: {...(id ? { id } : { slug }), createdBy: effectiveUserId },
-    })
+      where: { ...(id ? { id } : { slug }), createdBy: effectiveUserId },
+      select: {
+        slug: true,
+        id: true,
+        type: true,
+        title: true,
+        topic: true,
+        description: true,
+      },
+    });
 
-    if(!challenge)
+    if (!challenge)
       return {
         success: false,
-        message: CHALLENGE_ACCESS_ERROR
-      }
+        message: CHALLENGE_ACCESS_ERROR,
+      };
 
     return {
       success: true,
-      challenge
-    }
+      challenge,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+    };
+  }
+}
+
+export async function updateChallenge({
+  challenge,
+  userId,
+  challengeId,
+}: {
+  challenge: {
+    slug: string;
+    title: string;
+    description: string;
+    topic: string;
+  };
+  challengeId: string;
+  userId?: string;
+}) {
+  try {
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
+
+    const updateChallenge = await prisma.challenge.update({
+      where: { id: challengeId },
+      data: challenge,
+      select: {
+        id: true,
+      },
+    });
+
+    if (!updateChallenge)
+      return {
+        success: false,
+        message: `${GENERIC_ERROR} challenge can't be updated.`,
+      };
+
+    return {
+      success: true,
+      message: CHALLENGE_UPDATE_SUCCESS,
+      challengeId: updateChallenge.id,
+    };
   } catch (error) {
     console.log(error);
     return {
@@ -792,4 +859,3 @@ export async function requestChallengeForEdit({ slug, id, userId }: { slug: stri
 //     };
 //   }
 // }
-

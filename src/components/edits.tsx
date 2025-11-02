@@ -1,4 +1,5 @@
 import { Children } from "@/app/types/global";
+import clsx from "clsx";
 import React from "react";
 
 export const EditWrapper = React.memo(({ children }: Children) => {
@@ -12,34 +13,40 @@ export const EditWrapper = React.memo(({ children }: Children) => {
   );
 });
 export const FormWrapper = ({
-  label,
   value,
-  isEditing,
-  requestEditing,
-  sendResult,
-  ref,
-  type
+  label,
+  onChange,
+  type,
 }: {
   label: string;
   value: string;
   type: "input" | "textarea";
-  isEditing?: boolean;
-  requestEditing?: () => void;
-  sendResult?: (value: string) => void,
-  ref?: React.RefObject<HTMLInputElement & HTMLTextAreaElement>
+  onChange: (value: string) => void;
 }) => {
   return (
-    <div className="flex gap-1">
+    <div className={clsx(
+      "flex gap-1",
+      type === "textarea" && "flex-col justify-center",
+      type !== "textarea" && "items-center"
+    )}>
       <label className="text-white">{label}:</label>
-      {isEditing ? (
+      {
         type === "input" ? (
-          <input ref={ref} defaultValue={value} className="text-white font-medium" />
+          <input
+            value={value}
+            className="text-white font-medium max-w-30 p-1"
+            onChange={(e) => onChange(e.target.value)}
+          />
         ) : (
-          <textarea ref={ref} className="text-white font-medium">{value}</textarea>
+          <textarea
+            value={value}
+            className="text-white font-medium w-full border border-white/20 rounded-lg p-1 focus:outline-0 resize-none"
+            rows={3}
+            onChange={(e) => onChange(e.target.value)}
+          >
+          </textarea>
         )
-      ) : (
-        <button className="text-white font-medium cursor-pointer" onClick={requestEditing}>{value}</button>
-      )}
+        }
     </div>
   );
 };

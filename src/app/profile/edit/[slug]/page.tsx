@@ -7,7 +7,10 @@ import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import Loading from "@/components/ui/loading/Loading";
 import Title from "@/components/ui/title";
 import { CHALLENGE_ACCESS_ERROR, GENERIC_ERROR } from "@/constants/errors";
-import { requestChallengeForEdit } from "@/lib/actions/actions";
+import {
+  requestChallengeForEdit,
+  updateChallenge,
+} from "@/lib/actions/actions";
 import { useUserStore } from "@/zustand/useUserStore";
 import { $Enums } from "@prisma/client";
 import { AnimatePresence } from "framer-motion";
@@ -23,37 +26,42 @@ const editableValues = [
   { label: "Description", type: "textarea" },
 ];
 
-type typeType =  "input" | "textarea"
+type ChallengeType = {
+  slug: string;
+  title: string;
+  description: string;
+  topic: string;
+};
 
+type typeType = "input" | "textarea";
 
 export default function ChallengeEditPage({ params }: ChallengeEditProps) {
   const { slug } = React.use(params);
   const [messages, setMessages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  // const [test, setTest] = useState(false);
-  // const titleRef = useRef<HTMLInputElement>(null);
-  // const descriptionRef = useRef<HTMLInputElement>(null);
-  // const topicRef = useRef<HTMLInputElement>(null);
-  // const slugRef = useRef<HTMLInputElement>(null);
   const [challenge, setChallenge] = useState<{
     slug: string;
     id: string;
-    createdAt: Date;
-    updatedAt: Date;
     type: $Enums.ChallengeType;
     title: string;
     description: string | null;
     topic: string | null;
-    createdBy: string;
   } | null>(null);
 
   const challengeId = useRef<string | null>(null);
   const userId = useUserStore((state) => state.user)?.id;
   const router = useRouter();
-  const inputsRef = useRef<(HTMLInputElement | HTMLTextAreaElement)[]>(null);
-  const editedChallenge = useMemo(() => {
-    
-  }, [challenge, inputsRef]);
+
+  const handleChallengeUpdate = async () => {
+    if (!challenge) return;
+    const res = await updateChallenge({
+      challengeId: challenge.id,
+      challenge: { ...challenge } as ChallengeType,
+      userId,
+    });
+
+    setMessages(prev => [...prev, res.message])
+  };
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -111,7 +119,7 @@ export default function ChallengeEditPage({ params }: ChallengeEditProps) {
         <Title>Your Challenge</Title>
         {editableValues.map((ed) =>
           Array.isArray(ed) ? (
-            <div key={JSON.stringify(ed)} className="flex gap-2.5">
+            <div key={JSON.stringify(ed)} className="flex gap-2.5 flex-wrap">
               {ed.map(({ label, type }) => {
                 const key = label.toLowerCase() as keyof typeof challenge;
                 return (
@@ -120,6 +128,16 @@ export default function ChallengeEditPage({ params }: ChallengeEditProps) {
                     label={label}
                     type={type as typeType}
                     value={(challenge?.[key] ?? "") as string}
+                    onChange={(value) =>
+                      setChallenge((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              [key]: value,
+                            }
+                          : prev
+                      )
+                    }
                   />
                 );
               })}
@@ -134,11 +152,21 @@ export default function ChallengeEditPage({ params }: ChallengeEditProps) {
                   ed.label.toLowerCase() as keyof typeof challenge
                 ] ?? "") as string
               }
+              onChange={(value) =>
+                setChallenge((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        [ed.label.toLowerCase()]: value,
+                      }
+                    : prev
+                )
+              }
             />
           )
         )}
       </EditWrapper>
-      <div>{inputsRef.current && <DefaultButton label="update" />}</div>
+      <div className="mt-2">{<DefaultButton label="update" onClick={handleChallengeUpdate} />}</div>
     </div>
   );
 }

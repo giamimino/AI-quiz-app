@@ -26,6 +26,7 @@ export const CHALLENGE_ACCESS_ERROR= "Challenge not found or you don't have acce
 export const CHALLENGE_SUCCESS= "Challenge created successfully.";
 export const CHALLENGE_DELETE_SUCCESS= "Challenge deleted successfully.";
 export const ATTEMPT_DELETE_SUCCESS= "Attempt deleted successfully.";
+export const CHALLENGE_UPDATE_SUCCESS= "Challenge updated successfully."
 
 
 
