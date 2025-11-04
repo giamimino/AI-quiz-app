@@ -147,6 +147,9 @@ export default function ProfilePage() {
   if (!user?.image) return;
   return (
     <div className="text-white p-8">
+      <button onClick={() => router.push('profile/edit')} className='text-white p-1 border border-white cursor-pointer z-102 rounded-lg absolute right-2 top-2'>
+        <Icon icon={"tabler:user-edit"} />
+      </button>
       <AnimatePresence>
         {message.length > 0 && (
           <ErrorsWrapper>

@@ -27,6 +27,7 @@ export const CHALLENGE_SUCCESS= "Challenge created successfully.";
 export const CHALLENGE_DELETE_SUCCESS= "Challenge deleted successfully.";
 export const ATTEMPT_DELETE_SUCCESS= "Attempt deleted successfully.";
 export const CHALLENGE_UPDATE_SUCCESS= "Challenge updated successfully."
+export const USER_UPDATE_SUCCESS= "User updated successfully."
 
 
 

@@ -403,13 +403,16 @@ export async function handleReactChallenge({
   }
 }
 
-export async function countReactions({ challengeId }: { challengeId: string }) {
+export async function countReactions({ challengeId, userId }: { challengeId: string, userId?: string | null }) {
   try {
     if (!challengeId)
       return {
         success: false,
         message: GENERIC_ERROR,
       };
+
+    const session = userId?.trim() ? null : await auth()
+    const effectiveUserId = userId?.trim() ?? session?.user?.id
 
     const reactions = await prisma.$transaction(async (ts) => {
       const countLikes = await ts.challenge.findUnique({
@@ -437,10 +440,24 @@ export async function countReactions({ challengeId }: { challengeId: string }) {
           },
         },
       });
+      
+      const userReaction = await ts.challenge.findUnique({
+        where: { id: challengeId },
+        select: {
+          reactions: {
+            where: { userId: effectiveUserId },
+            select: {
+              userId: true,
+              type: true,
+            }
+          }
+        }
+      })
 
       return {
         countLikes,
         countStars,
+        userReaction: userReaction?.reactions[0]
       };
     });
 
@@ -859,3 +876,39 @@ export async function updateChallenge({
 //     };
 //   }
 // }
+
+export async function requestUserForEdit({ userId }: { userId?: string | null}) {
+  try {
+    const session = userId ? null : await auth()
+    const effectiveUserId = userId ?? session?.user?.id
+
+    const user = await prisma.user.findUnique({
+      where: { id: effectiveUserId },
+      select: {
+        birthday: true,
+        name: true,
+        username: true,
+        email: true,
+        emailVerified: true,
+        image: true
+      }
+    })
+
+    if(!user) 
+      return {
+        success: false,
+        message: GENERIC_ERROR
+      }
+
+    return {
+      success: true,
+      user
+    }
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR
+    }
+  }
+}

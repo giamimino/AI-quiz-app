@@ -41,6 +41,11 @@ html {
   background: #888;
 }
 
+.noCalendarIcon::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
 /* animations classes*/
 
 .fadeUp {

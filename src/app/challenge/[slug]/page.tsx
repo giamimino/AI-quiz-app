@@ -8,7 +8,7 @@ import Title from "@/components/ui/title";
 import { Icon } from "@iconify/react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { use, useEffect, useState, useTransition } from "react";
+import React, { use, useEffect, useRef, useState, useTransition } from "react";
 import months from "@/data/months.json";
 import ChallengeLoading from "@/components/ui/loading/ChallengeLoading";
 import DefaultButton from "@/components/ui/default-button";
@@ -18,11 +18,11 @@ import { GENERIC_ERROR } from "@/constants/errors";
 
 export default function ChallengePage({ params }: ChallengePageProps) {
   const { slug } = use(params);
-  const userId = useUserStore((state) => state.user?.id) ?? null;
   const [challenge, setChallenge] = useState<ChallengeReview | null>(null);
   const [finishedAt, setFinishedAt] = useState<string | null>(null);
   const [messages, setMessages] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
+  const userId = useUserStore((state) => state.user?.id) ?? null
   const [reactions, setReactions] = useState<
     {
       icon: string;
@@ -81,18 +81,18 @@ export default function ChallengePage({ params }: ChallengePageProps) {
       challengeId: challengeId ?? "",
     });
 
-    if (res.success && res.reaction) {
+    if (res.success && res.reaction && !reactions.some(r => r.isActive === true && r.type === res.reaction.type)) {
       setReactions((prev) =>
         prev
           ? prev.map((r) =>
               r.type === res.reaction.type
                 ? { ...r, _count: r._count + 1, isActive: true }
-                : r
+                : r.isActive ? { ...r, _count: r._count - 1, isActive: false } : r
             )
           : prev
       );
-    } else {
-      setMessages((prev) => [...prev, res.message ?? GENERIC_ERROR]);
+    } else if(res.message) {
+      setMessages((prev) => [...prev, res.message]);
     }
   }
 
@@ -117,8 +117,8 @@ export default function ChallengePage({ params }: ChallengePageProps) {
   useEffect(() => {
     if (!slug || !challengeId) return;
 
-    countReactions({ challengeId }).then((res) => {
-      if (res.success && res.reactions) {
+    countReactions({ challengeId, userId }).then((res) => {
+      if (res.success && res.reactions && res.reactions.userReaction) {
         setReactions((prev) =>
           prev
             ? prev.map((r) =>
@@ -126,11 +126,13 @@ export default function ChallengePage({ params }: ChallengePageProps) {
                   ? {
                       ...r,
                       _count: res.reactions.countLikes?._count.reactions ?? 0,
+                      isActive: res.reactions.userReaction?.type === "LIKE"
                     }
-                  : r.type === "STAR"
-                  ? {
+                    : r.type === "STAR"
+                    ? {
                       ...r,
                       _count: res.reactions.countStars?._count.reactions ?? 0,
+                      isActive: res.reactions.userReaction?.type === "STAR"
                     }
                   : r
               )

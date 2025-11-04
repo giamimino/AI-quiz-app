@@ -70,8 +70,6 @@ export default function Home() {
       take: more > 4 ? 3 : 4,
     }).then((res) => {
       if (res.success && res.challenges) {
-        console.log(res);
-        
         setChallenges((prev) => {
           const existingIds = new Set(prev.map((c) => c.id));
           const unique = res.challenges.filter((c) => !existingIds.has(c.id));
@@ -127,8 +125,7 @@ export default function Home() {
               )}
             </span>
             <div
-              className="absolute bottom-5 right-5 flex gap-1.5 items-center 
-        [&_button]:cursor-pointer"
+              className="absolute bottom-5 right-5 flex gap-1.5 items-center"
             >
               {reactions.map((r) => (
                 <button key={r.type} className="flex items-center gap-[2px]">

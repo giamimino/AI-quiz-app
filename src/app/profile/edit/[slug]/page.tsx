@@ -60,7 +60,7 @@ export default function ChallengeEditPage({ params }: ChallengeEditProps) {
       userId,
     });
 
-    setMessages(prev => [...prev, res.message])
+    setMessages((prev) => [...prev, res.message]);
   };
 
   useEffect(() => {
@@ -166,7 +166,14 @@ export default function ChallengeEditPage({ params }: ChallengeEditProps) {
           )
         )}
       </EditWrapper>
-      <div className="mt-2">{<DefaultButton label="update" onClick={handleChallengeUpdate} />}</div>
+      <div className="mt-2">
+        {<DefaultButton label="update" onClick={handleChallengeUpdate} />}
+      </div>
+      <p className="text-white/60 mt-2">
+        Unfortunately, challenge questions can’t be edited because participants
+        have already answered them. Editing would cause data loss. You can
+        either delete the challenge and create a new one, or leave it as it is.
+      </p>
     </div>
   );
 }
