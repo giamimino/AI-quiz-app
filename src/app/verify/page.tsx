@@ -1,0 +1,37 @@
+"use client"
+import Loading from '@/components/ui/loading/Loading'
+import { useRouter } from 'next/navigation'
+import React, { useEffect } from 'react'
+
+export default function verifyPage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const token = url.searchParams.get("token")
+    const id = url.searchParams.get("id")
+    if(!token) {
+      router.push("/profile/edit")
+      return
+    }
+
+    (async () => {
+      const res = await fetch("/api/send/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, userId: id ?? null })
+      })
+      const data = await res.json()
+
+      if(data.success) {
+        router.push("/profile/edit")
+      }
+    })();
+  }, [])
+  
+  return (
+    <div>
+      <Loading />
+    </div>
+  )
+}

@@ -49,7 +49,7 @@ export default function EditPage() {
       body: JSON.stringify({ name, username, birthday }),
     });
     const data = await res.json();
-
+    
     if (!data.success) {
       if (data.suggested) {
         setSuggestedValue({
@@ -64,6 +64,7 @@ export default function EditPage() {
 
   useEffect(() => {
     requestUserForEdit({ userId }).then((res) => {
+      console.log(res);
       if (res.success) {
         setUser(res.user);
       }
@@ -167,6 +168,19 @@ export default function EditPage() {
           type="input"
         />
       </EditWrapper>
+      <DefaultButton label="test" 
+      wFit
+        onClick={async () => {
+          const res = await fetch("/api/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: user.name, email: user.email })
+          })
+          const data = await res.json()
+          console.log(data);
+          
+        }}
+      />
     </div>
   );
 }
