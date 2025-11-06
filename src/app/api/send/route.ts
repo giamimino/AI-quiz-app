@@ -8,13 +8,13 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { name, email, userId }: { name: string; email: string, userId?: string | null } = await req.json();
+    const { name, email, userId, redirect }: { name: string; email: string, userId?: string | null, redirect: string } = await req.json();
     const session = userId ? null : await auth()
     const effectiveUserId = userId ?? session?.user?.id
     
     const token = generateEmailToken(email)
 
-    const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}verify/?token=${token}&id=${effectiveUserId}`
+    const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}${redirect}/?token=${token}&id=${effectiveUserId}`
     
     const { data, error } = await resend.emails.send({
       from: "ai.quiz.app@greenmindmail.shop",

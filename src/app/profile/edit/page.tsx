@@ -7,10 +7,13 @@ import Title from "@/components/ui/title";
 import { requestUserForEdit } from "@/lib/actions/actions";
 import { useUserStore } from "@/zustand/useUserStore";
 import { AnimatePresence } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import months from "@/data/months.json";
 import Loading from "@/components/ui/loading/Loading";
 import { useRouter } from "next/navigation";
+import { Icon } from "@iconify/react";
+import { generateEmailToken } from "@/utils/jwt";
+import { useErrorOverlayReducer } from "next/dist/next-devtools/dev-overlay/shared";
 
 const editableValues = [
   { label: "Name", type: "input" },
@@ -22,6 +25,7 @@ export default function EditPage() {
   const userId = useUserStore((state) => state.user?.id);
   const [messages, setMessages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const emailPRef = useRef<HTMLParagraphElement>(null);
   const [suggestedValue, setSuggestedValue] = useState<{
     value: string;
     label: string;
@@ -38,7 +42,7 @@ export default function EditPage() {
 
   const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true)
+    setLoading(true);
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
     const username = formData.get("username") as string;
@@ -49,7 +53,7 @@ export default function EditPage() {
       body: JSON.stringify({ name, username, birthday }),
     });
     const data = await res.json();
-    
+
     if (!data.success) {
       if (data.suggested) {
         setSuggestedValue({
@@ -59,12 +63,29 @@ export default function EditPage() {
       }
     }
     setMessages((prev) => [...prev, data.message]);
-    setLoading(false)
+    setLoading(false);
+  };
+
+  const handleEmailSend = async (redirect: string) => {
+    if (!user) return;
+    const res = await fetch("/api/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: user.name, email: user.email, redirect, userId }),
+    });
+    const data = await res.json();
+    if (data) {
+      setMessages((prev) => [
+        ...prev,
+        data.error ?? data.id
+          ? "A verification link has been sent to your email."
+          : "",
+      ]);
+    }
   };
 
   useEffect(() => {
     requestUserForEdit({ userId }).then((res) => {
-      console.log(res);
       if (res.success) {
         setUser(res.user);
       }
@@ -161,26 +182,43 @@ export default function EditPage() {
       </EditWrapper>
       <EditWrapper>
         <Title>Email</Title>
-        <FormWrapper
-          label="Email"
-          value={user.email}
-          onChange={(e) => console.log(e)}
-          type="input"
-        />
+        <div className={"flex gap-1 relative flex-wrap items-center"}>
+          <p
+            ref={emailPRef}
+            className="text-white font-medium w-fit p-1 border-1 border-white/7 rounded-md copy relative"
+            onClick={() => {
+              navigator.clipboard.writeText(user.email);
+              if (emailPRef.current) {
+                const range = document.createRange();
+                range.selectNodeContents(emailPRef.current);
+                const selection = window.getSelection();
+                selection?.removeAllRanges();
+                selection?.addRange(range);
+                emailPRef.current.classList.replace("copy", "copyed");
+              }
+            }}
+          >
+            {user.email}
+          </p>
+          <button
+            className="p-2 border-1 border-white/7 rounded-md cursor-pointer text-base text-white hover:opacity-60"
+            onClick={() => handleEmailSend(user.emailVerified ? "profile/edit/email" : "verify")}
+          >
+            <Icon
+              icon={
+                user.emailVerified
+                  ? "mdi:email-edit-outline"
+                  : "mdi:email-sent-outline"
+              }
+            />
+          </button>
+        </div>
+        <p className="text-white mt-2 font-medium">
+          {user.emailVerified
+            ? "Email verified."
+            : "Email unverified, please verify before editing it."}
+        </p>
       </EditWrapper>
-      <DefaultButton label="test" 
-      wFit
-        onClick={async () => {
-          const res = await fetch("/api/send", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: user.name, email: user.email })
-          })
-          const data = await res.json()
-          console.log(data);
-          
-        }}
-      />
     </div>
   );
 }

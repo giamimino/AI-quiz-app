@@ -37,6 +37,7 @@ export const FormWrapper = ({
   name,
   suggestedValue,
   clearSugestedValue,
+  wFull
 }: {
   label: string;
   value: string;
@@ -46,6 +47,7 @@ export const FormWrapper = ({
   name?: string;
   suggestedValue?: string;
   clearSugestedValue?: () => void;
+  wFull?: boolean
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +74,7 @@ export const FormWrapper = ({
       ref={wrapperRef}
       className={clsx(
         "flex flex-col gap-1 relative",
-        type === "textarea" && "flex-col justify-center"
+        type === "textarea" && "flex-col justify-center",
       )}
     >
       <label className="text-white cursor-text">{label}</label>
@@ -83,7 +85,7 @@ export const FormWrapper = ({
           type={as ?? "text"}
           className={clsx(
             "text-white font-medium max-w-45 p-1 border-1 border-white/7 rounded-md",
-            as && "noCalendarIcon"
+            as === "birthday" && "noCalendarIcon"
           )}
           onChange={(e) => onChange(e.target.value)}
         />

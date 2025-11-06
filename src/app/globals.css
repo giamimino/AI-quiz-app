@@ -46,6 +46,42 @@ html {
   -webkit-appearance: none;
 }
 
+.copy:hover:before {
+  content: url('https://api.iconify.design/solar/copy-broken.svg?height=16&color=white');
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  height: 24px;
+  width: 24px;
+  justify-content: center;
+  align-items: center;
+  padding-top: 4px;
+  border-radius: 0.25rem;
+  transform: translateX(-50%);
+  animation: fadeUp 500ms ease forwards;
+  cursor: pointer;
+}
+
+.copyed:hover:before {
+  content: url('https://api.iconify.design/solar/clipboard-check-broken.svg?height=16&color=white');
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  height: 24px;
+  width: 24px;
+  justify-content: center;
+  align-items: center;
+  padding-top: 4px;
+  border-radius: 0.25rem;
+  transform: translateX(-50%);
+  animation: fadeUp 500ms ease forwards;
+  cursor: pointer;
+}
+
 /* animations classes*/
 
 .fadeUp {
