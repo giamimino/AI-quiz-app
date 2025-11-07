@@ -32,6 +32,7 @@ export interface DefaultButtonProps {
   tlCorner?: boolean,
   trCorner?: boolean,
   size?: number,
+  mt?: number
 }
 
 export interface QuizOptionCreateProps {

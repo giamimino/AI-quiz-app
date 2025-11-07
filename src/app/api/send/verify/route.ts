@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const paylod = verifyEmailToken(token);
     const date = new Date();
 
-    if (!paylod)
+    if ('error' in paylod)
       return errorResponse("Verification link not found or expired.");
 
     const session = userId ? null : await auth();

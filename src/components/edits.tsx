@@ -84,8 +84,9 @@ export const FormWrapper = ({
           name={name}
           type={as ?? "text"}
           className={clsx(
-            "text-white font-medium max-w-45 p-1 border-1 border-white/7 rounded-md",
-            as === "birthday" && "noCalendarIcon"
+            "text-white font-medium p-1 border-1 border-white/7 rounded-md",
+            as === "birthday" && "noCalendarIcon",
+            wFull ? "w-full" : "max-w-45"
           )}
           onChange={(e) => onChange(e.target.value)}
         />

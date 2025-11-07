@@ -1,32 +1,58 @@
 import { GENERIC_ERROR } from "@/constants/errors";
-import { verifyEmailToken } from "@/utils/jwt";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { unCodeToken, verifyEmailToken } from "@/utils/jwt";
 import { NextResponse } from "next/server";
 
 function errorResponse(message: string) {
   return NextResponse.json({
     success: false,
-    permission: false,
     message,
   });
 }
 
 export async function POST(req: Request) {
   try {
-    const { token }: { token: string; } =
+    const { token, userId }: { token: string, userId: string } =
       await req.json();
     if (!token) 
       return errorResponse(GENERIC_ERROR);
 
-    const paylod = verifyEmailToken(token);
+    const session = userId ? null : await auth()
+    const effectiveUserId = userId ?? session?.user?.id
+    const date = new Date()
 
-    if (!paylod)
+    const paylod = verifyEmailToken(token);
+    
+    if ('error' in paylod)
       return errorResponse("Verification link not found or expired.");
+    
+    const decoded = unCodeToken(token) as {
+      email: string;
+      iat: number;
+      exp: number;
+    }
+
+    const updateUser = await prisma.user.update({
+      where: { id: effectiveUserId },
+      data: {
+        email: decoded.email,
+        emailVerified: date
+      },
+      select: {
+        id: true,
+        email: true,
+        emailVerified: true,
+      }
+    })
+
+    if(!updateUser)
+      return errorResponse(GENERIC_ERROR)
 
     return NextResponse.json({
       success: true,
-      permission: true,
       paylod,
-      message: "You have permission to edit."
+      user: updateUser
     });
   } catch (err) {
     console.log(err);

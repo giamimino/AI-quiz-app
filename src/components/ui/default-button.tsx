@@ -18,6 +18,7 @@ export default function DefaultButton({
   trCorner,
   size,
   xSmall,
+  mt,
   ...rest
 }: DefaultButtonProps &
   DetailedHTMLProps<
@@ -42,6 +43,7 @@ export default function DefaultButton({
       )}
       style={{
         fontWeight: font ? font : "",
+        marginTop: mt && `${mt * 4}px`,
       }}
       {...rest}
     >

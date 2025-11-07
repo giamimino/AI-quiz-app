@@ -8,7 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { name, email, userId, redirect }: { name: string; email: string, userId?: string | null, redirect: string } = await req.json();
+    const { name, email, userId, redirect }: { name?: string | null; email: string, userId?: string | null, redirect: string } = await req.json();
     const session = userId ? null : await auth()
     const effectiveUserId = userId ?? session?.user?.id
     
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       subject: "Ai Quiz app verify",
       html: `
         <div>
-          <h1>Hello, ${name}!</h1>
+          <h1>Hello, ${name ?? session?.user?.name}!</h1>
           <h3>Link: ${verifyUrl}</h3>
           <p>Expires in 15 minutes</p>
         </div>`,
