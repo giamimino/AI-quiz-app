@@ -10,7 +10,6 @@ import { prisma } from "../prisma";
 import { Answers } from "@/app/types/global";
 import { auth } from "../auth";
 import { Challenge, TopicState } from "@/app/types/store";
-import { $Enums } from "@prisma/client";
 
 export async function challangeDelete(id: string) {
   try {
@@ -817,7 +816,6 @@ export async function requestChallengeForEdit({
 
 export async function updateChallenge({
   challenge,
-  userId,
   challengeId,
 }: {
   challenge: {
@@ -827,11 +825,8 @@ export async function updateChallenge({
     topic: string;
   };
   challengeId: string;
-  userId?: string;
 }) {
   try {
-    const session = userId ? null : await auth();
-    const effectiveUserId = userId ?? session?.user?.id;
 
     const updateChallenge = await prisma.challenge.update({
       where: { id: challengeId },

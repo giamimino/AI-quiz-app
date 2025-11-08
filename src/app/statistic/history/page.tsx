@@ -16,7 +16,7 @@ import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-export default function historyPage() {
+export default function HistoryPage() {
   const [history, setHistory] = useState<ChallengeHistory[] | null>(null);
   const [messages, setMessages] = useState<string[]>([])
   const router = useRouter();

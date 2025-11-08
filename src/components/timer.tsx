@@ -16,9 +16,8 @@ export default function Timer({
     setStartTime(Date.now())
     setNow(Date.now())
 
-    clearInterval(intervalRef.current)
-    //@ts-ignore
-    intervalRef.current = setInterval(() => {
+    window.clearInterval(intervalRef.current)
+    intervalRef.current = window.setInterval(() => {
       setNow(Date.now())
     }, 1000)
     callBack()

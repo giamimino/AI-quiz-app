@@ -15,7 +15,7 @@ import { useUserStore } from "@/zustand/useUserStore";
 import { $Enums } from "@prisma/client";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const editableValues = [
   [
@@ -39,6 +39,7 @@ export default function ChallengeEditPage({ params }: ChallengeEditProps) {
   const { slug } = React.use(params);
   const [messages, setMessages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const userId = useUserStore((state) => state.user?.id) ?? null;
   const [challenge, setChallenge] = useState<{
     slug: string;
     id: string;
@@ -49,7 +50,6 @@ export default function ChallengeEditPage({ params }: ChallengeEditProps) {
   } | null>(null);
 
   const challengeId = useRef<string | null>(null);
-  const userId = useUserStore((state) => state.user)?.id;
   const router = useRouter();
 
   const handleChallengeUpdate = async () => {
@@ -57,7 +57,6 @@ export default function ChallengeEditPage({ params }: ChallengeEditProps) {
     const res = await updateChallenge({
       challengeId: challenge.id,
       challenge: { ...challenge } as ChallengeType,
-      userId,
     });
 
     setMessages((prev) => [...prev, res.message]);

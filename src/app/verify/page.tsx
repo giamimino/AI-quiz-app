@@ -3,7 +3,7 @@ import Loading from '@/components/ui/loading/Loading'
 import { useRouter } from 'next/navigation'
 import React, { useEffect } from 'react'
 
-export default function verifyPage() {
+export default function VerifyPage() {
   const router = useRouter()
 
   useEffect(() => {

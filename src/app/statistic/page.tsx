@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 
-export default function statisticPage() {
+export default function StatisticPage() {
   const router = useRouter()
   return (
     <div>

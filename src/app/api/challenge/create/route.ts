@@ -32,8 +32,8 @@ export async function POST(req: Request) {
     } = await req.json();
 
     if (!Type || !challenge) return errorResponse(GENERIC_ERROR);
-    const session = userId ? null : await auth()
-    const effectiveUserId = userId ?? session?.user?.id
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
 
     const result = await prisma.$transaction(async (tx) => {
       const newChallenge = await tx.challenge.create({
@@ -61,19 +61,28 @@ export async function POST(req: Request) {
         },
       });
 
-      const questionsData = challenge.questions.map(
-        ({ options: _options, answer: _answer, ...rest }) => ({
-          ...rest,
+      const questionMap = new Map<string, string>();
+      const questionsData = challenge.questions.map((q) => {
+        const data = {
+          id: q.id,
+          aiGenerated: q.aiGenerated,
+          question: q.question,
           challengeId: newChallenge.id,
-        })
-      );
+        };
+        questionMap.set(q.question, data.id!);
+        return data;
+      });
 
       await tx.question.createMany({ data: questionsData });
 
       const optionsData = challenge.questions.flatMap((q) => {
-        const questionId = questionsData.find(
+        const questionEntry = questionsData.find(
           (qq) => qq.question === q.question
-        )?.id!;
+        );
+        if (!questionEntry) {
+          throw new Error(`Question not found: ${q.question}`);
+        }
+        const questionId = questionEntry.id;
         return q.options.map((opt) => ({
           option: opt,
           isCorrect: opt === q.answer,
@@ -89,7 +98,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      challenge: {...result, reactionType: "Mine"},
+      challenge: { ...result, reactionType: "Mine" },
     });
   } catch (err) {
     console.log(err);

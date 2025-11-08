@@ -8,13 +8,12 @@ import Title from "@/components/ui/title";
 import { Icon } from "@iconify/react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { use, useEffect, useRef, useState, useTransition } from "react";
+import React, { use, useEffect, useState, useTransition } from "react";
 import months from "@/data/months.json";
 import ChallengeLoading from "@/components/ui/loading/ChallengeLoading";
 import DefaultButton from "@/components/ui/default-button";
 import { useUserStore } from "@/zustand/useUserStore";
 import { countReactions, handleReactChallenge } from "@/lib/actions/actions";
-import { GENERIC_ERROR } from "@/constants/errors";
 
 export default function ChallengePage({ params }: ChallengePageProps) {
   const { slug } = use(params);

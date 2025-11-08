@@ -32,6 +32,7 @@ import {
   handleGetLiked,
 } from "@/lib/actions/actions";
 import DefaultButton from "@/components/ui/default-button";
+import Image from "next/image";
 const ProfileWrapper = dynamic(
   () => delay(350).then(() => import("@/components/ui/ProfileWrapper")),
   {
@@ -165,11 +166,12 @@ export default function ProfilePage() {
       </AnimatePresence>
       <ProfileContainer flexWrap>
         <ProfileWrapper gap={0.5} col direction="fadeUp">
-          <img
+          <Image
             src={user?.image}
             width={48}
             height={48}
             className="rounded-full mb-2.5"
+            alt={user.username + "-" + "profile"}
           />
           {user &&
             Object.entries(user).map(

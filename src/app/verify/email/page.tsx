@@ -4,7 +4,7 @@ import { useUserStore } from '@/zustand/useUserStore'
 import { useRouter } from 'next/navigation'
 import React, { useEffect } from 'react'
 
-export default function verifyPage() {
+export default function VerifyPage() {
   const router = useRouter()
   const setUser = useUserStore(state => state.setUser)
 

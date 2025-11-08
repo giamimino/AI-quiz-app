@@ -11,7 +11,7 @@ export default function WelcomeGreet() {
     const total = duration + (words.length / 10) + 0.4
     const timer = setTimeout(() => setShow(false), total * 1000)
     return () => clearTimeout(timer)
-  }, [word.length])
+  }, [])
 
   return (
     <>

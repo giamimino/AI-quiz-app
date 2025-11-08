@@ -1,4 +1,3 @@
-import { Children } from "@/app/types/global";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useRef } from "react";
@@ -10,7 +9,7 @@ type Props<T extends "div" | "form" = "div"> = {
   ? React.HTMLAttributes<HTMLFormElement>
   : React.HTMLAttributes<HTMLDivElement>);
 
-export const EditWrapper = React.memo(
+const EditWrapper = React.memo(
   <T extends "div" | "form" = "div">({
     children,
     type,
@@ -27,6 +26,10 @@ export const EditWrapper = React.memo(
     );
   }
 );
+
+EditWrapper.displayName = "EditWrapper"
+
+export { EditWrapper };
 
 export const FormWrapper = ({
   value,

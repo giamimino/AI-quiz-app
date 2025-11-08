@@ -55,7 +55,7 @@ export default function TopicsFilterWrapper({
 
       {topics?.length !== 0 && (
         <div className="flex flex-wrap gap-2.5">
-          {topics.map((t, idx) => (
+          {topics.map((t) => (
             <button
               onClick={() => handleSelect({ topic: t.topic })}
               className={clsx(

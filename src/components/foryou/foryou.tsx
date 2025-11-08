@@ -9,12 +9,10 @@ export function ForYouContainer({ children }: Children) {
 export function ForYouWrapper({
   children,
   delay,
-  id,
   topic,
   handleSee,
 }: Children & {
   delay: number;
-  id: string;
   topic: string;
   handleSee: () => void;
 }) {

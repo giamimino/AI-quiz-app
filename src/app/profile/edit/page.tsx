@@ -12,8 +12,6 @@ import months from "@/data/months.json";
 import Loading from "@/components/ui/loading/Loading";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
-import { generateEmailToken } from "@/utils/jwt";
-import { useErrorOverlayReducer } from "next/dist/next-devtools/dev-overlay/shared";
 
 const editableValues = [
   { label: "Name", type: "input" },

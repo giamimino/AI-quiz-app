@@ -12,6 +12,8 @@ export function unCodeToken(token: string) {
     if(!decoded) return { error: "Unable to decode token" }
     return decoded
   } catch (err) {
+    console.log(err);
+    
     return { error: "Failed to decode token" }
   }
 }

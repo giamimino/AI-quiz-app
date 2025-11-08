@@ -52,7 +52,6 @@ export default function EmailEditPage() {
   useEffect(() => {
     const url = new URL(window.location.href);
     const token = url.searchParams.get("token");
-    const userId = url.searchParams.get("id") as string | undefined | null;
     if (!token) {
       setLoading(false);
       return;
@@ -65,13 +64,11 @@ export default function EmailEditPage() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
-
         setMessages((prev) => [...prev, data.message]);
         setPermission(data.permission);
         if (data.success) {
           setEmail({
-            oldEmail: String(data.payload.email) ?? "",
+            oldEmail: String(data.paylod.email) ?? "",
             newEmail: "",
           });
         }

@@ -45,7 +45,9 @@ export default function QuizFetcher() {
   if(loading) return <QuizLoading />
   return (
     <QuizWrapper>
-      <Quiz children={quizArray[line]?.question ?? ""} />
+      <Quiz>
+        {quizArray[line]?.question ?? ""}
+      </Quiz>
       <QuizOptions>
         {quizArray[line]?.options.map((
           (q) => (

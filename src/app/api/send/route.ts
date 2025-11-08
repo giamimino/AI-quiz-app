@@ -1,4 +1,3 @@
-import { EmailTemplate } from "@/components/email-template";
 import { auth } from "@/lib/auth";
 import { generateEmailToken } from "@/utils/jwt";
 import { NextResponse } from "next/server";

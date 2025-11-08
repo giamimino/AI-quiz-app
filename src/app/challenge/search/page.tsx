@@ -29,7 +29,7 @@ export default function SearchPage() {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const router = useRouter();
   const [showFilter, closeFilter] = useState(false);
-  const { setTopics, pushTopic } = useTopicStore();
+  const { setTopics } = useTopicStore();
 
   const filteredChallenges = useMemo(() => {
     if (!challenges) return;

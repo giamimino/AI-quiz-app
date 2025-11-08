@@ -4,7 +4,7 @@ import HeroWelcome from "@/components/Hero/hero-welcome";
 import { AnimatePresence } from "framer-motion";
 import WelcomeGreet from "@/components/welcome-greet";
 import { ForYouContainer, ForYouWrapper } from "@/components/foryou/foryou";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { requestRandomChallenge } from "@/lib/actions/actions";
 import Loading from "@/components/ui/loading/Loading";
 import {
@@ -94,7 +94,6 @@ export default function Home() {
           <ForYouWrapper
             key={`${c.id}-home`}
             delay={Math.min(index * 0.1, 0.8)}
-            id={c.id}
             topic={c.topic ?? "topic"}
             handleSee={() => handleSeeChallenge(c.id, c.slug)}
           >
