@@ -46,6 +46,8 @@ export async function GET(req: NextRequest) {
         attempts: {
           where: { userId: effectiveUserId },
           select: {
+            id: true,
+            startedAt: true,
             finishedAt: true
           }
         }

@@ -16,7 +16,7 @@ export interface ChallengeReview {
   topic: string;
   type: "AI" | "CUSTOM";
   creator: { name: string; username: true; id: true };
-  createdAt: string;
+  createdAt: Date;
   _count: { questions: number }
 }
 

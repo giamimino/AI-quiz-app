@@ -402,7 +402,13 @@ export async function handleReactChallenge({
   }
 }
 
-export async function countReactions({ challengeId, userId }: { challengeId: string, userId?: string | null }) {
+export async function countReactions({
+  challengeId,
+  userId,
+}: {
+  challengeId: string;
+  userId?: string | null;
+}) {
   try {
     if (!challengeId)
       return {
@@ -410,8 +416,8 @@ export async function countReactions({ challengeId, userId }: { challengeId: str
         message: GENERIC_ERROR,
       };
 
-    const session = userId?.trim() ? null : await auth()
-    const effectiveUserId = userId?.trim() ?? session?.user?.id
+    const session = userId?.trim() ? null : await auth();
+    const effectiveUserId = userId?.trim() ?? session?.user?.id;
 
     const reactions = await prisma.$transaction(async (ts) => {
       const countLikes = await ts.challenge.findUnique({
@@ -439,7 +445,7 @@ export async function countReactions({ challengeId, userId }: { challengeId: str
           },
         },
       });
-      
+
       const userReaction = await ts.challenge.findUnique({
         where: { id: challengeId },
         select: {
@@ -448,15 +454,15 @@ export async function countReactions({ challengeId, userId }: { challengeId: str
             select: {
               userId: true,
               type: true,
-            }
-          }
-        }
-      })
+            },
+          },
+        },
+      });
 
       return {
         countLikes,
         countStars,
-        userReaction: userReaction?.reactions[0]
+        userReaction: userReaction?.reactions[0],
       };
     });
 
@@ -827,7 +833,6 @@ export async function updateChallenge({
   challengeId: string;
 }) {
   try {
-
     const updateChallenge = await prisma.challenge.update({
       where: { id: challengeId },
       data: challenge,
@@ -856,26 +861,47 @@ export async function updateChallenge({
   }
 }
 
-// export async function example({ example }: { example: string }) {
-//   try {
-//     if (!example.trim())
-//       return {
-//         success: false,
-//         message: GENERIC_ERROR,
-//       };
-//   } catch (error) {
-//     console.log(error);
-//     return {
-//       success: false,
-//       message: GENERIC_ERROR,
-//     };
-//   }
-// }
-
-export async function requestUserForEdit({ userId }: { userId?: string | null}) {
+export async function countScore({ userId }: { userId?: string | null }) {
   try {
-    const session = userId ? null : await auth()
-    const effectiveUserId = userId ?? session?.user?.id
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
+
+    const totalScore = await prisma.attempt.aggregate({
+      _sum: {
+        score: true,
+      },
+      where: {
+        userId: effectiveUserId,
+      },
+    });
+
+    if (!totalScore)
+      return {
+        success: false,
+        message: GENERIC_ERROR,
+      };
+
+    return {
+      success: true,
+      totalScore,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+    };
+  }
+}
+
+export async function requestUserForEdit({
+  userId,
+}: {
+  userId?: string | null;
+}) {
+  try {
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
 
     const user = await prisma.user.findUnique({
       where: { id: effectiveUserId },
@@ -885,11 +911,47 @@ export async function requestUserForEdit({ userId }: { userId?: string | null}) 
         username: true,
         email: true,
         emailVerified: true,
-        image: true
+        image: true,
+      },
+    });
+
+    if (!user)
+      return {
+        success: false,
+        message: GENERIC_ERROR,
+      };
+
+    return {
+      success: true,
+      user,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+    };
+  }
+}
+
+export async function requestAttemptsActivity({
+  userId,
+}: {
+  userId?: string | null;
+}) {
+  try {
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
+
+    const attempts = await prisma.attempt.findMany({
+      where: { userId: effectiveUserId },
+      select: {
+        startedAt: true,
+        score: true
       }
     })
 
-    if(!user) 
+    if(!attempts)
       return {
         success: false,
         message: GENERIC_ERROR
@@ -897,13 +959,13 @@ export async function requestUserForEdit({ userId }: { userId?: string | null}) 
 
     return {
       success: true,
-      user
+      attempts
     }
   } catch (error) {
     console.error(error);
     return {
       success: false,
-      message: GENERIC_ERROR
-    }
+      message: GENERIC_ERROR,
+    };
   }
 }

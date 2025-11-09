@@ -8,7 +8,7 @@ import Title from "@/components/ui/title";
 import { Icon } from "@iconify/react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { use, useEffect, useState, useTransition } from "react";
+import React, { use, useEffect, useMemo, useState, useTransition } from "react";
 import months from "@/data/months.json";
 import ChallengeLoading from "@/components/ui/loading/ChallengeLoading";
 import DefaultButton from "@/components/ui/default-button";
@@ -18,10 +18,14 @@ import { countReactions, handleReactChallenge } from "@/lib/actions/actions";
 export default function ChallengePage({ params }: ChallengePageProps) {
   const { slug } = use(params);
   const [challenge, setChallenge] = useState<ChallengeReview | null>(null);
-  const [finishedAt, setFinishedAt] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState<{
+    finishedAt: Date;
+    startedAt: Date;
+    attemptId: string;
+  } | null>(null);
   const [messages, setMessages] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
-  const userId = useUserStore((state) => state.user?.id) ?? null
+  const userId = useUserStore((state) => state.user?.id) ?? null;
   const [reactions, setReactions] = useState<
     {
       icon: string;
@@ -61,17 +65,13 @@ export default function ChallengePage({ params }: ChallengePageProps) {
   const createdAt = challenge && new Date(challenge.createdAt);
   const router = useRouter();
 
-  function calculateFinishedIn() {
-    if (!finishedAt || !createdAt) return "0s";
+  const finishedIn = useMemo(() => {
+    if (!attempt) return "0s";
 
-    const finishedAtDate = new Date(finishedAt);
-    const createdAtDate = new Date(createdAt);
-
-    const sec = (finishedAtDate.getTime() - createdAtDate.getTime()) / 1000;
-    return `${sec?.toFixed(0)}s`;
-  }
-
-  const finishedIn = calculateFinishedIn();
+    const sec =
+      (attempt.finishedAt.getTime() - attempt.startedAt.getTime()) / 1000;
+    return `${sec.toFixed(0)}s`;
+  }, [attempt]);
 
   async function handleReaction(type: "LIKE" | "DISLIKE" | "STAR") {
     const res = await handleReactChallenge({
@@ -80,17 +80,25 @@ export default function ChallengePage({ params }: ChallengePageProps) {
       challengeId: challengeId ?? "",
     });
 
-    if (res.success && res.reaction && !reactions.some(r => r.isActive === true && r.type === res.reaction.type)) {
+    if (
+      res.success &&
+      res.reaction &&
+      !reactions.some(
+        (r) => r.isActive === true && r.type === res.reaction.type
+      )
+    ) {
       setReactions((prev) =>
         prev
           ? prev.map((r) =>
               r.type === res.reaction.type
                 ? { ...r, _count: r._count + 1, isActive: true }
-                : r.isActive ? { ...r, _count: r._count - 1, isActive: false } : r
+                : r.isActive
+                ? { ...r, _count: r._count - 1, isActive: false }
+                : r
             )
           : prev
       );
-    } else if(res.message) {
+    } else if (res.message) {
       setMessages((prev) => [...prev, res.message]);
     }
   }
@@ -105,7 +113,15 @@ export default function ChallengePage({ params }: ChallengePageProps) {
       startTransition(() => {
         if (data.success) {
           setChallenge(data.challenge);
-          setFinishedAt(data.challenge.attempts.length ? data.challenge.attempts[0].finishedAt : "");
+          setAttempt(
+            data.challenge.attempts.length
+              ? {
+                  finishedAt: new Date(data.challenge.attempts[0].finishedAt),
+                  startedAt: new Date(data.challenge.attempts[0].startedAt),
+                  attemptId: data.challenge.attempts[0].id,
+                }
+              : null
+          );
         } else {
           setMessages((prev) => [...prev, data.message]);
         }
@@ -125,13 +141,13 @@ export default function ChallengePage({ params }: ChallengePageProps) {
                   ? {
                       ...r,
                       _count: res.reactions.countLikes?._count.reactions ?? 0,
-                      isActive: res.reactions.userReaction?.type === "LIKE"
+                      isActive: res.reactions.userReaction?.type === "LIKE",
                     }
-                    : r.type === "STAR"
-                    ? {
+                  : r.type === "STAR"
+                  ? {
                       ...r,
                       _count: res.reactions.countStars?._count.reactions ?? 0,
-                      isActive: res.reactions.userReaction?.type === "STAR"
+                      isActive: res.reactions.userReaction?.type === "STAR",
                     }
                   : r
               )
@@ -177,13 +193,20 @@ export default function ChallengePage({ params }: ChallengePageProps) {
         </span>
         <Title>{challenge?.title}</Title>
         <p className="text-white/70  px-1">{challenge?.description}</p>
-        <p className="text-white/70 ">Questions: {challenge?._count.questions}</p>
+        <p className="text-white/70 ">
+          Questions: {challenge?._count.questions}
+        </p>
         <div>
-          <button onClick={() => router.push(`/challenge/search?topic=${challenge?.topic}`)} className="text-white/70 cursor-pointer w-fit">
+          <button
+            onClick={() =>
+              router.push(`/challenge/search?topic=${challenge?.topic}`)
+            }
+            className="text-white/70 cursor-pointer w-fit"
+          >
             #{challenge?.topic}
           </button>
         </div>
-        {!finishedAt ? (
+        {!attempt ? (
           <DefaultButton
             label="Start"
             wFit
@@ -196,6 +219,12 @@ export default function ChallengePage({ params }: ChallengePageProps) {
             <p className="text-white/80">
               Finished in <span>{finishedIn}</span>
             </p>
+            <DefaultButton
+              label="See Result"
+              wFit
+              noSelect
+              onClick={() => router.push(`/challenge/${slug}/result?attemptId=${attempt.attemptId}`)}
+            />
           </>
         )}
         <span className="w-12 h-0.5 rounded-full bg-white/80 mt-4"></span>
