@@ -334,6 +334,16 @@ export default function ProfilePage() {
           </AnimatePresence>
         </main>
       </ProfileContainer>
+      <div className="w-full flex justify-center p-2">
+        <DefaultButton 
+          icon="lucide:user-round-search"
+          xSmall
+          wFit
+          color="black"
+          size={17}
+          onClick={() => router.push("profile/search")}
+        />
+      </div>
     </div>
   );
 }

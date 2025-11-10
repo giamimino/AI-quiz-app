@@ -1,7 +1,15 @@
 import { Children } from "@/app/types/global";
 import clsx from "clsx";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, YAxis, XAxis, Tooltip } from "recharts";
-import colors from "@/data/colors/colors.json"
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  YAxis,
+  XAxis,
+  Tooltip,
+} from "recharts";
+import colors from "@/data/colors/colors.json";
 
 export function StatisticContianer({
   children,
@@ -19,18 +27,36 @@ export function StatisticContianer({
   );
 }
 
-export function AreaChartComponent({ data }: { data: { startedAt: string; score: number}[] }) {
-  const color = colors[Math.floor(Math.random() * 20)]
-  
+export function AreaChartComponent({
+  data,
+}: {
+  data: { startedAt: string; score: number }[];
+}) {
+  const color = colors[Math.floor(Math.random() * 20)];
+
   return (
     <ResponsiveContainer width={"100%"} height={300}>
       <AreaChart data={data}>
         <CartesianGrid strokeDasharray="3 3" stroke="#333" />
         <XAxis dataKey="startedAt" stroke="#ccc" />
-        <YAxis stroke="#ccc" dataKey={"score"} allowDecimals={false} domain={['dataMin', 'dataMax + 100']} />
+        <YAxis
+          stroke="#ccc"
+          dataKey={"score"}
+          allowDecimals={false}
+          domain={["dataMin", "dataMax + 100"]}
+        />
         <Tooltip />
-        <Area dataKey="score" stroke={color} fill="transparent" type="linear" strokeWidth={2} dot={false} />
+        <Area
+          dataKey="score"
+          stroke={color}
+          fill="transparent"
+          type="linear"
+          strokeWidth={2}
+          dot={false}
+          animationDuration={2500}
+          animationEasing="ease-in-out"
+        />
       </AreaChart>
     </ResponsiveContainer>
-  )
+  );
 }

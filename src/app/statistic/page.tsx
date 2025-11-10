@@ -34,7 +34,6 @@ export default function StatisticPage() {
     });
   }, []);
 
-  console.log(activity);
   useEffect(() => {
     requestAttemptsActivity({ userId }).then((res) => {
       if (res.success && res.attempts) {

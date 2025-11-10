@@ -969,3 +969,36 @@ export async function requestAttemptsActivity({
     };
   }
 }
+
+export async function searchUsers({ username, ids }: { username:string, ids: string[] }) {
+  try {
+    const users = await prisma.user.findMany({
+      where: { username: { contains: username }, id: { notIn: ids } },
+      select: {
+        id: true,
+        image: true,
+        username: true,
+        name: true,
+        createdAt: true
+      },
+      take: 10,
+    })
+
+    if(users.length === 0)
+      return {
+        success: false,
+        message: GENERIC_ERROR
+      }
+
+    return {
+      success: true,
+      users
+    }
+  } catch (error) {
+    console.error(error)
+    return {
+      success: false,
+      message: GENERIC_ERROR
+    }
+  }
+}

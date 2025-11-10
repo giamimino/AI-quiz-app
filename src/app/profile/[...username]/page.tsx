@@ -12,6 +12,7 @@ import Title from "@/components/ui/title";
 import { Icon } from "@iconify/react";
 import { AnimatePresence } from "framer-motion";
 import React, { use, useEffect, useState } from "react";
+import months from "@/data/months.json"
 
 export default function UserProfilePage({ params }: UserProiflePageProps) {
   const { username } = use(params);
@@ -80,9 +81,9 @@ export default function UserProfilePage({ params }: UserProiflePageProps) {
           <Title>{userData?.name}</Title>
           <p>{userData.username}</p>
           {userData.birthday && (
-            <h2>
+            <h2 className="text-white flex items-center gap-2">
               <Icon icon={"la:birthday-cake"} />
-              <span>{userData.birthday}</span>
+              <span>{`${new Date(userData.birthday).getDate()} ${months[new Date(userData.birthday).getMonth()]}`}</span>
             </h2>
           )}
           <div className="flex flex-wrap gap-2.5">
