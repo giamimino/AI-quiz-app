@@ -11,7 +11,7 @@ export function timeAgo(date: Date) {
     second: 1
   };
 
-  for (let key in intervals) {
+  for (const key in intervals) {
     const value = Math.floor(seconds / intervals[key]);
     if (value >= 1) {
       return `${value} ${key}${value > 1 ? 's' : ''} ago`;

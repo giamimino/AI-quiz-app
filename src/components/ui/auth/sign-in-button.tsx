@@ -2,7 +2,7 @@ import { login } from "@/lib/actions/auth";
 import { Icon } from "@iconify/react";
 import React from "react";
 
-export default function SignInButton({ provider }: { provider: "github" }) {
+export default function SignInButton({ provider }: { provider: "github" | "discord" }) {
   return (
     <button
       onClick={() => login(provider)}
@@ -11,8 +11,8 @@ export default function SignInButton({ provider }: { provider: "github" }) {
       hover:border-white focus:ring-2 focus:ring-white focus:ring-offset-4
       focus:ring-offset-[#181818]"
     >
-      <Icon icon={"mdi:github"} className="text-white" />
-      <span className="text-white/70">Continue with Github</span>
+      <Icon icon={`mdi:${provider}`} className="text-white" />
+      <span className="text-white/70">Continue with {`${provider[0].toUpperCase()}${provider.slice(1, provider.length)}`}</span>
     </button>
   );
 }

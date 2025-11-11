@@ -8,6 +8,8 @@ export default function AuthPage() {
     <div>
       <AuthWrapper>
         <SignInButton provider='github' />
+        <h1 className='text-center text-white/70'>or</h1>
+        <SignInButton provider='discord' />
       </AuthWrapper>
     </div>
   )

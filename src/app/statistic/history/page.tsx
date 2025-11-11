@@ -18,7 +18,7 @@ import React, { useEffect, useState } from "react";
 
 export default function HistoryPage() {
   const [history, setHistory] = useState<ChallengeHistory[] | null>(null);
-  const [messages, setMessages] = useState<string[]>([])
+  const [messages, setMessages] = useState<string[]>([]);
   const router = useRouter();
   const userId = useUserStore((state) => state.user)?.id;
   useEffect(() => {
@@ -30,15 +30,19 @@ export default function HistoryPage() {
   }, []);
 
   async function handleDeleteAttempt(attemptId: string) {
-    const res = await requestDeleteAttempt({ attemptId })
+    const res = await requestDeleteAttempt({ attemptId });
 
-    setMessages(prev => [...prev, res.message])
-    setHistory(prev => prev ? prev.filter(h => h.id !== attemptId) : prev)
+    setMessages((prev) => [...prev, res.message]);
+    setHistory((prev) =>
+      prev ? prev.filter((h) => h.id !== attemptId) : prev
+    );
   }
 
   function handleRediretcResult(attemptId: string) {
-    const attempt = history?.find(h => h.id === attemptId)
-    router.push(`/challenge/${attempt?.challenge.slug}/result?attemptId=${attemptId}`)
+    const attempt = history?.find((h) => h.id === attemptId);
+    router.push(
+      `/challenge/${attempt?.challenge.slug}/result?attemptId=${attemptId}`
+    );
   }
 
   return (
@@ -51,7 +55,9 @@ export default function HistoryPage() {
                 key={`${c}-${idx}`}
                 error={c}
                 handleClose={() =>
-                  setMessages((prev) => prev.filter((_, index) => index !== idx))
+                  setMessages((prev) =>
+                    prev.filter((_, index) => index !== idx)
+                  )
                 }
               />
             ))}
@@ -77,15 +83,23 @@ export default function HistoryPage() {
             score={h.score}
             topic={h.challenge.topic ?? "topic"}
             finishedIn={
-              h.finishedAt
-                ? (h.finishedAt.getTime() - h.startedAt.getTime()) / 1000
-                : false
+              (h.finishedAt
+                ? Number(
+                    (
+                      (new Date(h.finishedAt).getTime() -
+                        new Date(h.startedAt).getTime()) /
+                      1000
+                    ).toFixed(2)
+                  )
+                : false) as number | boolean
             }
           >
             <HistoryTitle title={h.challenge.title} />
             <HistoryDescription description={h.challenge.description} />
-            <span className="p-1 bg-gray-700 rounded-lg absolute text-white
-            right-3 top-2 max-sm:top-1.5 max-sm:right-2">
+            <span
+              className="p-1 bg-gray-700 rounded-lg absolute text-white
+            right-3 top-2 max-sm:top-1.5 max-sm:right-2"
+            >
               {h.challenge.type === "AI" ? (
                 <Icon icon={"hugeicons:artificial-intelligence-04"} />
               ) : (
