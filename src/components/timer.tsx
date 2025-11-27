@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import DefaultButton from "./ui/default-button";
+import DefaultButton from "./ui/default/default-button";
 
 export default function Timer({
   start,

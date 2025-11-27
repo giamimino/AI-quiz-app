@@ -7,7 +7,7 @@ import {
   HistoryWrapper,
 } from "@/components/templates/history-components";
 import TopicsFilterWrapper from "@/components/topics-filter-wrapper";
-import Search from "@/components/ui/default-serch";
+import Search from "@/components/ui/default/default-serch";
 import Loading from "@/components/ui/loading/Loading";
 import { useDebounce } from "@/hooks/useDebounce";
 import {

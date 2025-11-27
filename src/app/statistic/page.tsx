@@ -5,7 +5,7 @@ import {
 } from "@/components/templates/statistic-components";
 import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
-import Title from "@/components/ui/title";
+import Title from "@/components/ui/default/title";
 import { GENERIC_ERROR } from "@/constants/errors";
 import { countScore, requestAttemptsActivity } from "@/lib/actions/actions";
 import { useUserStore } from "@/zustand/useUserStore";

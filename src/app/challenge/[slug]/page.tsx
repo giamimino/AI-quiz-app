@@ -4,14 +4,14 @@ import { ChallengePageProps } from "@/app/types/props";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import ProfileWrapper from "@/components/ui/ProfileWrapper";
 import Error from "@/components/ui/error";
-import Title from "@/components/ui/title";
+import Title from "@/components/ui/default/title";
 import { Icon } from "@iconify/react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { use, useEffect, useMemo, useState, useTransition } from "react";
 import months from "@/data/months.json";
 import ChallengeLoading from "@/components/ui/loading/ChallengeLoading";
-import DefaultButton from "@/components/ui/default-button";
+import DefaultButton from "@/components/ui/default/default-button";
 import { useUserStore } from "@/zustand/useUserStore";
 import { countReactions, handleReactChallenge } from "@/lib/actions/actions";
 

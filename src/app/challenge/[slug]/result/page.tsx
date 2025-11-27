@@ -6,7 +6,7 @@ import {
   ResultsContainer,
   ResultWrapper,
 } from "@/components/results";
-import DefaultButton from "@/components/ui/default-button";
+import DefaultButton from "@/components/ui/default/default-button";
 import { Icon } from "@iconify/react";
 import React, { useEffect, useMemo, useState } from "react";
 

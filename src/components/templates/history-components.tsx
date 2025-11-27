@@ -1,7 +1,7 @@
 import { Children } from "@/app/types/global";
 import clsx from "clsx";
 import React, { useEffect, useRef, useState } from "react";
-import DefaultButton from "../ui/default-button";
+import DefaultButton from "../ui/default/default-button";
 import { motion } from "framer-motion";
 
 export function HistoryContianer({ children }: Children) {

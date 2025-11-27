@@ -8,7 +8,7 @@ import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import Loading from "@/components/ui/loading/Loading";
 import ProfileImage from "@/components/ui/ProfileImage";
 import ProfileWrapper from "@/components/ui/ProfileWrapper";
-import Title from "@/components/ui/title";
+import Title from "@/components/ui/default/title";
 import { Icon } from "@iconify/react";
 import { AnimatePresence } from "framer-motion";
 import React, { use, useEffect, useState } from "react";

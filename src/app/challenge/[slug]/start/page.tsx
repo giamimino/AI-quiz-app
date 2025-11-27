@@ -7,7 +7,7 @@ import QuizOptions from "@/components/quiz/QuizOptions";
 import QuizWrapper from "@/components/quiz/QuizWrapper";
 import Timer from "@/components/timer";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
-import DefaultButton from "@/components/ui/default-button";
+import DefaultButton from "@/components/ui/default/default-button";
 import Error from "@/components/ui/error";
 import { GENERIC_ERROR, RESULT_REQUEST_ERROR } from "@/constants/errors";
 import { challengeStart, sendResult } from "@/lib/actions/actions";

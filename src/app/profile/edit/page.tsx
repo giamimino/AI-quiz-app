@@ -1,9 +1,9 @@
 "use client";
 import { EditWrapper, FormWrapper } from "@/components/edits";
-import DefaultButton from "@/components/ui/default-button";
+import DefaultButton from "@/components/ui/default/default-button";
 import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
-import Title from "@/components/ui/title";
+import Title from "@/components/ui/default/title";
 import { requestUserForEdit } from "@/lib/actions/actions";
 import { useUserStore } from "@/zustand/useUserStore";
 import { AnimatePresence } from "framer-motion";

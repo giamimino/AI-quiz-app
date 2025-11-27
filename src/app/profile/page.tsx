@@ -17,7 +17,7 @@ import ProfileWrapperLoading from "@/components/ui/loading/ProfileWrapperLoding"
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import ProfileImage from "@/components/ui/ProfileImage";
-import Title from "@/components/ui/title";
+import Title from "@/components/ui/default/title";
 import { useChallengeStore } from "@/zustand/useChallengeStore";
 import { AnimatePresence, motion } from "framer-motion";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
@@ -31,7 +31,7 @@ import {
   handleGetFavorites,
   handleGetLiked,
 } from "@/lib/actions/actions";
-import DefaultButton from "@/components/ui/default-button";
+import DefaultButton from "@/components/ui/default/default-button";
 import Image from "next/image";
 const ProfileWrapper = dynamic(
   () => delay(350).then(() => import("@/components/ui/ProfileWrapper")),
@@ -56,7 +56,7 @@ export default function ProfilePage() {
   const [indicatorProps, setIndicatorProps] = useState({ left: 0, width: 0 });
   const [deleting, setDeleting] = useState(false);
   const [hovered, setHovered] = useState<number | null>(null);
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(false);
   const [selectedSection, setSelectedSection] = useState<
     "My Challenges" | "Likes" | "Favorites"
   >("My Challenges");
@@ -148,9 +148,20 @@ export default function ProfilePage() {
   if (!user?.image) return;
   return (
     <div className="text-white p-8">
-      <button onClick={() => router.push('profile/edit')} className='text-white p-1 border border-white cursor-pointer z-102 rounded-lg absolute right-2 top-2'>
-        <Icon icon={"tabler:user-edit"} />
-      </button>
+      <div className="absolute z-102 right-2 top-2 flex flex-col gap-1.5">
+        <button
+          onClick={() => router.push("profile/edit")}
+          className="text-white p-1 border border-white cursor-pointer rounded-lg hover:bg-white hover:text-dark-06 transition-all duration-400"
+        >
+          <Icon icon={"tabler:user-edit"} />
+        </button>
+        <button
+          onClick={() => router.push("games")}
+          className="text-white p-1 border border-white cursor-pointer rounded-lg hover:bg-white hover:text-dark-06 transition-all duration-400"
+        >
+          <Icon icon={"carbon:game-console"} />
+        </button>
+      </div>
       <AnimatePresence>
         {message.length > 0 && (
           <ErrorsWrapper>
@@ -281,18 +292,16 @@ export default function ProfilePage() {
                 <ChallengeHero
                   key={`${c.id}`}
                   {...c}
-                  
                   description={
                     c.description.length > 150
                       ? `${String(c.description).slice(0, 150)}...`
                       : c.description
                   }
-                  {...(c.reactionType !== "Mine")
+                  {...(c.reactionType !== "Mine"
                     ? {}
                     : {
-                      ...(isEditing && {isEditing: true})
-                    }
-                  }
+                        ...(isEditing && { isEditing: true }),
+                      })}
                   {...(c.reactionType !== "Mine"
                     ? {}
                     : {
@@ -318,7 +327,7 @@ export default function ProfilePage() {
                   y: 10,
                   opacity: 0,
                 }}
-                onClick={() => setIsEditing(prev => !prev)}
+                onClick={() => setIsEditing((prev) => !prev)}
                 transition={{ duration: 0.45, ease: "backOut" }}
                 className="flex justify-center w-full"
               >
@@ -335,7 +344,7 @@ export default function ProfilePage() {
         </main>
       </ProfileContainer>
       <div className="w-full flex justify-center p-2">
-        <DefaultButton 
+        <DefaultButton
           icon="lucide:user-round-search"
           xSmall
           wFit

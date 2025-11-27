@@ -1,11 +1,11 @@
 "use client";
 import { ChallengeEditProps } from "@/app/types/props";
 import { EditWrapper, FormWrapper } from "@/components/edits";
-import DefaultButton from "@/components/ui/default-button";
+import DefaultButton from "@/components/ui/default/default-button";
 import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import Loading from "@/components/ui/loading/Loading";
-import Title from "@/components/ui/title";
+import Title from "@/components/ui/default/title";
 import { CHALLENGE_ACCESS_ERROR, GENERIC_ERROR } from "@/constants/errors";
 import {
   requestChallengeForEdit,

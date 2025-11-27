@@ -1,5 +1,5 @@
 import { CreateChallangeProps } from '@/app/types/props'
-import DefaultButton from '@/components/ui/default-button';
+import DefaultButton from '@/components/ui/default/default-button';
 import React from 'react'
 
 export default function ChoiceWrapper({ onChoice }: CreateChallangeProps) {

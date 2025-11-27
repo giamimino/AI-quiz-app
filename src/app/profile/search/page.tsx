@@ -1,6 +1,6 @@
 "use client";
 import { UsersContainer, UserWrapper } from "@/components/templates/users-components";
-import Search from "@/components/ui/default-serch";
+import Search from "@/components/ui/default/default-serch";
 import { useDebounce } from "@/hooks/useDebounce";
 import { searchUsers } from "@/lib/actions/actions";
 import { timeAgo } from "@/utils/timeAgo";

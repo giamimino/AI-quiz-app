@@ -8,7 +8,7 @@ import {
 } from "@/components/templates/history-components";
 import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
-import Title from "@/components/ui/title";
+import Title from "@/components/ui/default/title";
 import { requestAttempts, requestDeleteAttempt } from "@/lib/actions/actions";
 import { useUserStore } from "@/zustand/useUserStore";
 import { Icon } from "@iconify/react";

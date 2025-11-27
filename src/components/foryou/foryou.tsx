@@ -1,6 +1,6 @@
 import { Children } from "@/app/types/global";
 import { motion } from "framer-motion";
-import DefaultButton from "../ui/default-button";
+import DefaultButton from "../ui/default/default-button";
 
 export function ForYouContainer({ children }: Children) {
   return <main className="flex flex-col gap-2.5 w-full px-1">{children}</main>;

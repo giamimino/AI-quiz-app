@@ -15,20 +15,20 @@ const MenuButton = forwardRef<HTMLButtonElement, MenuButtonProps>(
             rotate: open ? -45 : 0,
             y: open ? 5.3 : 0,
           }}
-          className="w-full h-0.5 bg-white"
+          className="w-full h-0.5 bg-white rounded-full"
         ></motion.span>
         <motion.span
           animate={{
             opacity: open ? 0 : 100,
           }}
-          className="w-full h-0.5 bg-white"
+          className="w-full h-0.5 bg-white rounded-full"
         ></motion.span>
         <motion.span
           animate={{
             rotate: open ? 45 : 0,
             y: open ? -5.3 : 0,
           }}
-          className="w-full h-0.5 bg-white"
+          className="w-full h-0.5 bg-white rounded-full"
         ></motion.span>
       </button>
     );

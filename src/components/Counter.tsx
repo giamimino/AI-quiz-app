@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import DefaultButton from './ui/default-button'
+import DefaultButton from './ui/default/default-button'
 
 const limit = 50
 export default function Counter({ ref, currentLenght }: { currentLenght: number, ref: React.RefObject<HTMLHeadingElement | null> | null }) {

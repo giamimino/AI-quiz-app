@@ -1,6 +1,6 @@
 "use client";
 import { EditWrapper, FormWrapper } from "@/components/edits";
-import DefaultButton from "@/components/ui/default-button";
+import DefaultButton from "@/components/ui/default/default-button";
 import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import Loading from "@/components/ui/loading/Loading";

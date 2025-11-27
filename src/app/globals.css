@@ -1,6 +1,18 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat:100,200,300,regular,500,600,700,800,900,100italic,200italic,300italic,italic,500italic,600italic,700italic,800italic,900italic');
 @import "tailwindcss";
 
+@theme {
+  --color-brawn-60: #ae9b84;
+  --color-brown-70: #C2B4A3;
+  --color-dark-06: #0f0f0f;
+  --color-dark-10: #1a1a1a;
+  --color-dark-12: #1f1f1f;
+  --color-dark-15: #262626;
+  --color-dark-25: #404040;
+  --color-grey-70: #b3b3b2;
+  --color-grey-40: #676665;
+}
+
 body {
   background-color: #181818;
 }
@@ -8,6 +20,10 @@ body {
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
+}
+
+.auto-text {
+  color: color-mix(in oklab, var(--bg-color), black 70%);
 }
 
 .glow {
