@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useEffect, useRef } from "react";
 
 export default function DefaultTitle({
@@ -5,18 +6,22 @@ export default function DefaultTitle({
   text,
   CustomClass,
   font,
+  onClick,
+  pointer,
 }: {
   title: string;
   text?: number;
   font?: string;
   CustomClass?: string | null;
+  onClick?: () => void;
+  pointer?: boolean;
 }) {
-  const titleRef = useRef<HTMLHeadingElement>(null)
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const base = text || 16;
 
-  const min = Math.round(base * 0.6)
-  const max = base
-  const fluid = (base / 16) * 1.2
+  const min = Math.round(base * 0.7);
+  const max = base;
+  const fluid = (base / 16) * 1.2;
 
   const style = {
     fontWeight: font || "normal",
@@ -24,13 +29,18 @@ export default function DefaultTitle({
   };
 
   useEffect(() => {
-    if(CustomClass && titleRef.current) {
-      titleRef.current.classList.add(...CustomClass.split(" "))
+    if (CustomClass && titleRef.current) {
+      titleRef.current.classList.add(...CustomClass.split(" "));
     }
-  }, [])
+  }, []);
 
   return (
-    <h1 className="text-white" ref={titleRef} style={style}>
+    <h1
+      className={clsx("text-white", pointer && "cursor-pointer")}
+      ref={titleRef}
+      style={style}
+      {...(onClick ? { onClick: onClick } : {})}
+    >
       {title}
     </h1>
   );

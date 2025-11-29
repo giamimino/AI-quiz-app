@@ -3,9 +3,11 @@ import DefaultTitle from "@/components/ui/default/default-title";
 import DefaultWrapper from "@/components/ui/default/default-wrapper";
 import PrimaryButton from "@/components/ui/primary/primary-button";
 import clsx from "clsx";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 export default function GamesPage() {
+  const router = useRouter()
   return (
     <div className="p-8">
       <DefaultWrapper noBorder col gap={2.5}>
@@ -14,8 +16,7 @@ export default function GamesPage() {
           <PrimaryButton icon="mingcute:arrow-down-fill" />
         </div>
         <DefaultWrapper wFit dFlex gap={4.5} p={{ p: 4.5 }}>
-          <GameWrapper title="1v1" className="bg-dark-06 text-grey-70" />
-          <GameWrapper title="2v2" className="bg-yellow-600 text-dark-06" />
+          <GameWrapper title="QuickClash" className="bg-dark-06 text-grey-70" onClick={() => router.push("/games/quickclash")} />
         </DefaultWrapper>
       </DefaultWrapper>
     </div>

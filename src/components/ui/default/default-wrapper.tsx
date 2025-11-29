@@ -13,7 +13,8 @@ export default function DefaultWrapper({
   rel,
   noOverflow,
   gap,
-  col
+  col,
+  solid
 }: Children & {
   noBorder?: { t?: boolean; r?: boolean; b?: boolean; l?: boolean } | boolean;
   noRounded?:
@@ -28,7 +29,8 @@ export default function DefaultWrapper({
   rel?: boolean,
   noOverflow?: boolean,
   gap?: number,
-  col?: boolean
+  col?: boolean,
+  solid?: boolean
 }) {
   const borders = {
     "border-t-0": typeof noBorder === "object" && noBorder?.t,
@@ -48,7 +50,7 @@ export default function DefaultWrapper({
   return (
     <div
       className={clsx(
-        `border-2 border-dark-15 border-dashed rounded-2xl`,
+        `border-2 border-dark-15 rounded-xl`,
         borders,
         rounds,
         wFit ? "w-fit" : "w-full",
@@ -57,7 +59,8 @@ export default function DefaultWrapper({
         rel && "relative",
         noOverflow && "overflow-hidden",
         col && !dFlex && "flex flex-col",
-        col && "flex-col"
+        col && "flex-col",
+        solid ? "border-solid" : "border-dashed"
       )}
       style={{
         padding: p

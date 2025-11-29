@@ -1,15 +1,34 @@
 "use server";
 import {
+  ALL_FIELDS_REQUIRED_ERROR,
   ATTEMPT_DELETE_SUCCESS,
   CHALLENGE_ACCESS_ERROR,
   CHALLENGE_DELETE_SUCCESS,
   CHALLENGE_UPDATE_SUCCESS,
   GENERIC_ERROR,
+  ROOM_CANT_FOUND_ERROR,
+  ROOM_JOIN_SUCCESS,
+  ROOM_NOT_ALLOWED_ERROR,
+  ROOM_NOT_ALLOWED_JOIN_ERROR,
+  ROOM_PLAYERS_LIMIT_ERROR,
+  ROOM_QUESTIONS_LENGTH_ERROR,
+  ROOM_REACHED_LIMIT_ERROR,
 } from "@/constants/errors";
 import { prisma } from "../prisma";
 import { Answers } from "@/app/types/global";
 import { auth } from "../auth";
 import { Challenge, TopicState } from "@/app/types/store";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  setDoc,
+} from "firebase/firestore";
+import { db } from "@/configs/firebase";
+import { FireStoreRooms } from "@/types/firestore";
+import cuid from "cuid";
 
 export async function challangeDelete(id: string) {
   try {
@@ -947,20 +966,20 @@ export async function requestAttemptsActivity({
       where: { userId: effectiveUserId },
       select: {
         startedAt: true,
-        score: true
-      }
-    })
+        score: true,
+      },
+    });
 
-    if(!attempts)
+    if (!attempts)
       return {
         success: false,
-        message: GENERIC_ERROR
-      }
+        message: GENERIC_ERROR,
+      };
 
     return {
       success: true,
-      attempts
-    }
+      attempts,
+    };
   } catch (error) {
     console.error(error);
     return {
@@ -970,7 +989,13 @@ export async function requestAttemptsActivity({
   }
 }
 
-export async function searchUsers({ username, ids }: { username:string, ids: string[] }) {
+export async function searchUsers({
+  username,
+  ids,
+}: {
+  username: string;
+  ids: string[];
+}) {
   try {
     const users = await prisma.user.findMany({
       where: { username: { contains: username }, id: { notIn: ids } },
@@ -979,26 +1004,201 @@ export async function searchUsers({ username, ids }: { username:string, ids: str
         image: true,
         username: true,
         name: true,
-        createdAt: true
+        createdAt: true,
       },
       take: 10,
-    })
+    });
 
-    if(users.length === 0)
+    if (users.length === 0)
       return {
         success: false,
-        message: GENERIC_ERROR
-      }
+        message: GENERIC_ERROR,
+      };
 
     return {
       success: true,
-      users
-    }
+      users,
+    };
   } catch (error) {
-    console.error(error)
+    console.error(error);
     return {
       success: false,
-      message: GENERIC_ERROR
+      message: GENERIC_ERROR,
+    };
+  }
+}
+
+export async function CreateRoom({
+  formData,
+  isPublic,
+  user,
+}: {
+  formData: FormData;
+  isPublic: boolean;
+  user?: {
+    id: string;
+    name: string;
+    username: string;
+  };
+}) {
+  try {
+    const title = formData.get("title") as string;
+    const topic = formData.get("topic") as string;
+    const players_limit = Number(formData.get("players_limit") as string); // number
+    const questions_length = Number(formData.get("questions_length") as string); // number
+
+    if (!title.trim() || !topic.trim() || !players_limit || !questions_length)
+      return { success: false, message: ALL_FIELDS_REQUIRED_ERROR };
+
+    if (players_limit % 2 !== 0 || players_limit > 6 || players_limit < 2)
+      return {
+        success: false,
+        message: ROOM_PLAYERS_LIMIT_ERROR,
+      };
+
+    if (questions_length > 25 || questions_length < 1)
+      return {
+        success: false,
+        message: ROOM_QUESTIONS_LENGTH_ERROR,
+      };
+
+    const session = user ? null : await auth();
+    const effectiveUserId = user?.id ?? session?.user?.id;
+    const roomsRef = collection(db, "rooms");
+    const roomId = cuid();
+    const now = new Date();
+    addDoc(roomsRef, {
+      title,
+      topic,
+      players_limit,
+      questions_length,
+      public: isPublic,
+      createdBy: effectiveUserId,
+      createdAt: now,
+      players: [user],
+      deadline: (now.getTime() + 360).toString(),
+      id: roomId,
+    } as FireStoreRooms);
+
+    return {
+      success: true,
+      roomId,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function deleteRoom({
+  userId,
+  roomId,
+}: {
+  userId?: string;
+  roomId: string;
+}) {
+  try {
+    if (!roomId)
+      return {
+        success: false,
+        message: GENERIC_ERROR,
+      };
+
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
+
+    if (!snap.exists())
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
+
+    const data = snap.data();
+
+    if (data?.createdBy !== effectiveUserId)
+      return {
+        success: false,
+        message: ROOM_NOT_ALLOWED_ERROR,
+      };
+
+    await deleteDoc(roomRef);
+
+    return {
+      success: true,
+      message: "Room deleted successfully.",
+      roomId,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function joinRoom({
+  user,
+  roomId,
+}: {
+  user?: { id: string; name: string; username: string };
+  roomId: string;
+}) {
+  try {
+    if (!roomId)
+      return {
+        success: false,
+        message: GENERIC_ERROR,
+      };
+
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
+
+    if (!snap.exists())
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
+
+    const data = snap.data() as FireStoreRooms;
+
+    if (data.createdBy === user?.id)
+      return {
+        success: false,
+        message: ROOM_NOT_ALLOWED_JOIN_ERROR,
+      };
+
+    if (Number(data.players.length) === Number(data.players_limit))
+      return {
+        success: false,
+        message: ROOM_REACHED_LIMIT_ERROR,
+      };
+
+    const newData = {
+      ...data,
+      players: [...data.players, user],
+    };
+
+    await setDoc(roomRef, newData);
+
+    return {
+      success: true,
+      message: ROOM_JOIN_SUCCESS,
+      roomId
     }
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
   }
 }

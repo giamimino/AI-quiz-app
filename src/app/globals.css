@@ -26,6 +26,17 @@ html {
   color: color-mix(in oklab, var(--bg-color), black 70%);
 }
 
+.custom-number {
+  -moz-appearance: textfield;
+}
+
+.custom-number::-webkit-inner-spin-button,
+.custom-number::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
 .glow {
   color: #fff;
   font-family: 'Montserrat', sans-serif;
