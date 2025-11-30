@@ -3,8 +3,9 @@ import React, { ButtonHTMLAttributes, DetailedHTMLProps } from "react";
 
 export default function UnderlineButton({
   label,
+  noTextColor,
   ...rest
-}: { label: string} &
+}: { label: string, noTextColor?:boolean} &
   DetailedHTMLProps<
     ButtonHTMLAttributes<HTMLButtonElement>,
     HTMLButtonElement
@@ -12,7 +13,8 @@ export default function UnderlineButton({
   return (
     <button
       className={clsx(
-        "cursor-pointer text-white hover:text-grey-70 transition underline",
+        "cursor-pointer transition underline",
+        !noTextColor && 'text-white hover:text-grey-70'
       )}
       {...rest}
     >

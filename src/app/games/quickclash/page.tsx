@@ -1,4 +1,5 @@
 "use client";
+import { UserRoomStatus } from "@/app/types/store";
 import UnderlineButton from "@/components/ui/buttons/underline-button";
 import DefaultButton from "@/components/ui/default/default-button";
 import DefaultTitle from "@/components/ui/default/default-title";
@@ -7,8 +8,14 @@ import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import { db } from "@/configs/firebase";
 import { GENERIC_ERROR } from "@/constants/errors";
-import { CreateRoom, deleteRoom, joinRoom } from "@/lib/actions/actions";
+import {
+  CreateRoom,
+  deleteRoom,
+  joinRoom,
+  kickPlayer,
+} from "@/lib/actions/actions";
 import { FireStoreRooms } from "@/types/firestore";
+import { useUserRoomStatusStore } from "@/zustand/useUserRoomStatusStore";
 import { useUserStore } from "@/zustand/useUserStore";
 import clsx from "clsx";
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
@@ -18,11 +25,12 @@ import React, { useEffect, useMemo, useState } from "react";
 
 export default function QuickClashPage() {
   const { user, setUser } = useUserStore();
+  const { status, setStatus, clearStatus } = useUserRoomStatusStore();
   const [rooms, setRooms] = useState<FireStoreRooms[]>([]);
   const [isPublic, setIsPublic] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
   const [roomId, setRoomId] = useState<string | null>(null);
-  const router = useRouter()
+  const router = useRouter();
   const roomsRef = collection(db, "rooms");
 
   const FetchRooms = async () => {
@@ -52,6 +60,7 @@ export default function QuickClashPage() {
               user: { name: user.name, username: user.username, id: user.id },
             }
           : {}),
+        status,
       });
 
       if (result?.success) {
@@ -72,6 +81,7 @@ export default function QuickClashPage() {
       setMessages((prev) => [...prev, result.message]);
       if (result.success) {
         setRooms((prev) => prev.filter((p) => p.id !== result.roomId));
+        clearStatus();
       }
     } catch (error) {
       console.error(error);
@@ -80,17 +90,36 @@ export default function QuickClashPage() {
 
   const handleJoinInRoom = async (guestRoomId: string) => {
     try {
-      if(!user) return
-      const result = await joinRoom({ user: { name: user.name, username: user.username, id: user.id}, roomId: guestRoomId })
+      if (!user) return;
+      const result = await joinRoom({
+        user: { name: user.name, username: user.username, id: user.id },
+        roomId: guestRoomId,
+        status,
+      });
 
-      setMessages(prev => [...prev, result.message])
-      if(result.success) {
-        console.log("success");
+      setMessages((prev) => [...prev, result.message]);
+      if (result.success) {
+        setStatus(result.status as UserRoomStatus);
+        router.push(`quickclash/room/${result.roomId}`)
       }
     } catch (error) {
       console.error(error);
     }
-  }
+  };
+
+  const handleKickPLayerFromRoom = async (userId: string) => {
+    try {
+      if (!roomId) return;
+
+      const result = await kickPlayer({ userId, roomId });
+
+      if (result) {
+        setMessages((prev) => [...prev, result.message]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const myroom = useMemo(() => {
     if (!rooms || !user) return null;
@@ -107,6 +136,8 @@ export default function QuickClashPage() {
   useEffect(() => {
     onSnapshot(roomsRef, (snapshot) => {
       const result: any[] = [];
+      console.log(snapshot);
+      
       snapshot.forEach((doc) => {
         if (!rooms.some((room) => room.id === doc.id)) {
           result.push({ ...doc.data(), id: doc.id });
@@ -126,6 +157,28 @@ export default function QuickClashPage() {
         }
       });
   }, []);
+
+  useEffect(() => {
+    if (!rooms || !user || status) return;
+    let findUser = null;
+    for (let i = 0; i < rooms.length; i++) {
+      if (rooms[i].players.some((p) => p.id === user.id) && !findUser) {
+        findUser = {
+          ...rooms[i].players.find((p) => p.id === user.id),
+          roomId: rooms[i].id,
+        };
+      }
+    }
+
+    if (
+      findUser &&
+      typeof findUser.id !== "undefined" &&
+      typeof findUser.name !== "undefined" &&
+      typeof findUser.username !== "undefined"
+    ) {
+      setStatus(findUser as UserRoomStatus);
+    }
+  }, [user, rooms]);
 
   return (
     <div className="p-8 flex flex-col gap-4">
@@ -243,7 +296,11 @@ export default function QuickClashPage() {
                   title={`${room.players.length ?? "0"}/${room.players_limit}`}
                 />
                 {room.createdBy !== user?.id && (
-                  <DefaultButton onClick={() => handleJoinInRoom(room.id)} icon="streamline:user-add-plus-solid" small />
+                  <DefaultButton
+                    onClick={() => handleJoinInRoom(room.id)}
+                    icon="streamline:user-add-plus-solid"
+                    small
+                  />
                 )}
               </div>
             </DefaultWrapper>
@@ -258,9 +315,30 @@ export default function QuickClashPage() {
             <DefaultTitle title="Players List" />
             <DefaultWrapper p={{ p: 2.5 }}>
               {myroom?.players.map((p) => (
-                <div key={p.id} className="w-full flex justify-between items-center">
+                <div
+                  key={p.id}
+                  className="w-full flex justify-between items-center"
+                >
                   <DefaultTitle title={p.name} />
-                  <UnderlineButton label="view profile" onClick={() => router.push(`/profile/${p.username}?id=${p.id}`)} />
+                  {p.id !== user?.id ? (
+                    <div className="flex items-center gap-2.5">
+                      <UnderlineButton
+                        label="view profile"
+                        onClick={() =>
+                          router.push(`/profile/${p.username}?id=${p.id}`)
+                        }
+                      />
+                      <span className="text-red-600 hover:text-red-400">
+                        <UnderlineButton
+                          label="kick"
+                          onClick={() => handleKickPLayerFromRoom(p.id)}
+                          noTextColor
+                        />
+                      </span>
+                    </div>
+                  ) : (
+                    <UnderlineButton label="You" />
+                  )}
                 </div>
               ))}
             </DefaultWrapper>

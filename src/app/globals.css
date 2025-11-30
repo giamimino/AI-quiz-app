@@ -1,16 +1,25 @@
-@import url('https://fonts.googleapis.com/css?family=Montserrat:100,200,300,regular,500,600,700,800,900,100italic,200italic,300italic,italic,500italic,600italic,700italic,800italic,900italic');
+@import url("https://fonts.googleapis.com/css?family=Montserrat:100,200,300,regular,500,600,700,800,900,100italic,200italic,300italic,italic,500italic,600italic,700italic,800italic,900italic");
 @import "tailwindcss";
 
 @theme {
   --color-brawn-60: #ae9b84;
-  --color-brown-70: #C2B4A3;
+  --color-brown-70: #c2b4a3;
+  --color-brown-80: #a99888;
   --color-dark-06: #0f0f0f;
   --color-dark-10: #1a1a1a;
   --color-dark-12: #1f1f1f;
   --color-dark-15: #262626;
   --color-dark-25: #404040;
-  --color-grey-70: #b3b3b2;
+  --color-grey-10: #1b1b1a;
+  --color-grey-20: #2a2a29;
+  --color-grey-30: #484847;
   --color-grey-40: #676665;
+  --color-grey-50: #858583;
+  --color-grey-60: #9c9c9a;
+  --color-grey-70: #b3b3b2;
+  --color-grey-80: #cbcbc9;
+  --color-grey-90: #e2e2e0;
+  --color-grey-100: #f5f5f3;
 }
 
 body {
@@ -36,10 +45,9 @@ html {
   margin: 0;
 }
 
-
 .glow {
   color: #fff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   text-shadow: rgba(255, 255, 255, 0.1) 0px 0px 2px,
     rgba(255, 255, 255, 0.3) 0px 0px 4px, rgba(255, 255, 255, 0.4) 0px 0px 8px,
     rgba(0, 0, 0, 0.8) 0px 0px 136px;
@@ -74,7 +82,7 @@ html {
 }
 
 .copy:hover:before {
-  content: url('https://api.iconify.design/solar/copy-broken.svg?height=16&color=white');
+  content: url("https://api.iconify.design/solar/copy-broken.svg?height=16&color=white");
   position: absolute;
   top: -100%;
   left: 50%;
@@ -92,7 +100,7 @@ html {
 }
 
 .copyed:hover:before {
-  content: url('https://api.iconify.design/solar/clipboard-check-broken.svg?height=16&color=white');
+  content: url("https://api.iconify.design/solar/clipboard-check-broken.svg?height=16&color=white");
   position: absolute;
   top: -100%;
   left: 50%;

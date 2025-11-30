@@ -69,6 +69,12 @@ export interface ChallengeEditProps {
   }>
 }
 
+export interface RoomPageProps {
+  params: Promise<{
+    roomId: string
+  }>
+}
+
 export interface ProfileImageProps {
   src: string,
   w?: number,

@@ -42,3 +42,16 @@ export interface TopicStore {
   pushTopic: (topic: TopicState) => void;
   clearTopics: () => void;
 }
+
+export interface UserRoomStatus {
+  id: string,
+  name: string,
+  username: string,
+  roomId: string,
+}
+
+export interface UserRoomStatusStore {
+  status: UserRoomStatus | null
+  setStatus: (status: UserRoomStatus) => void
+  clearStatus: () => void
+}

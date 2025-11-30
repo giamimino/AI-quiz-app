@@ -6,7 +6,11 @@ import {
   CHALLENGE_DELETE_SUCCESS,
   CHALLENGE_UPDATE_SUCCESS,
   GENERIC_ERROR,
+  PLAYER_KICK_SUCCESS,
+  ROOM_ALREADY_EXIST_ERROR,
+  ROOM_ALREADY_IN_ROOM_ERROR,
   ROOM_CANT_FOUND_ERROR,
+  ROOM_JOIN_SAME_ERROR,
   ROOM_JOIN_SUCCESS,
   ROOM_NOT_ALLOWED_ERROR,
   ROOM_NOT_ALLOWED_JOIN_ERROR,
@@ -17,18 +21,22 @@ import {
 import { prisma } from "../prisma";
 import { Answers } from "@/app/types/global";
 import { auth } from "../auth";
-import { Challenge, TopicState } from "@/app/types/store";
+import { Challenge, TopicState, UserRoomStatus } from "@/app/types/store";
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
+  query,
   setDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "@/configs/firebase";
 import { FireStoreRooms } from "@/types/firestore";
 import cuid from "cuid";
+import { stat } from "fs";
 
 export async function challangeDelete(id: string) {
   try {
@@ -1032,6 +1040,7 @@ export async function CreateRoom({
   formData,
   isPublic,
   user,
+  status,
 }: {
   formData: FormData;
   isPublic: boolean;
@@ -1040,8 +1049,14 @@ export async function CreateRoom({
     name: string;
     username: string;
   };
+  status: UserRoomStatus | null;
 }) {
   try {
+    if (status)
+      return {
+        success: false,
+        message: ROOM_ALREADY_IN_ROOM_ERROR,
+      };
     const title = formData.get("title") as string;
     const topic = formData.get("topic") as string;
     const players_limit = Number(formData.get("players_limit") as string); // number
@@ -1065,6 +1080,16 @@ export async function CreateRoom({
     const session = user ? null : await auth();
     const effectiveUserId = user?.id ?? session?.user?.id;
     const roomsRef = collection(db, "rooms");
+
+    const q = query(roomsRef, where("createdBy", "==", effectiveUserId));
+    const snap = await getDocs(q);
+
+    if (!snap.empty)
+      return {
+        success: false,
+        message: ROOM_ALREADY_EXIST_ERROR,
+      };
+
     const roomId = cuid();
     const now = new Date();
     addDoc(roomsRef, {
@@ -1074,10 +1099,11 @@ export async function CreateRoom({
       questions_length,
       public: isPublic,
       createdBy: effectiveUserId,
-      createdAt: now,
+      createdAt: now.getTime().toString(),
       players: [user],
       deadline: (now.getTime() + 360).toString(),
       id: roomId,
+      start: false
     } as FireStoreRooms);
 
     return {
@@ -1147,11 +1173,25 @@ export async function deleteRoom({
 export async function joinRoom({
   user,
   roomId,
+  status,
 }: {
   user?: { id: string; name: string; username: string };
   roomId: string;
+  status: UserRoomStatus | null;
 }) {
   try {
+    if (status?.roomId === roomId)
+      return {
+        success: false,
+        message: ROOM_JOIN_SAME_ERROR,
+      };
+
+    if (status)
+      return {
+        success: false,
+        message: ROOM_ALREADY_IN_ROOM_ERROR,
+      };
+
     if (!roomId)
       return {
         success: false,
@@ -1191,8 +1231,9 @@ export async function joinRoom({
     return {
       success: true,
       message: ROOM_JOIN_SUCCESS,
-      roomId
-    }
+      roomId,
+      status: { ...user, roomId },
+    };
   } catch (error) {
     console.error(error);
     return {
@@ -1200,5 +1241,41 @@ export async function joinRoom({
       message: GENERIC_ERROR,
       developerMessage: error,
     };
+  }
+}
+
+export async function kickPlayer({
+  userId,
+  roomId,
+}: {
+  userId: string;
+  roomId: string;
+}) {
+  try {
+    if(!roomId) return {
+      success: false,
+      message: GENERIC_ERROR
+    }
+
+    const roomRef = doc(db, "rooms", roomId)
+    const snap = await getDoc(roomRef)
+
+    if(!snap.exists()) return {
+      success: false,
+      message: ROOM_CANT_FOUND_ERROR
+    }
+
+    const data = snap.data() as FireStoreRooms
+
+    const newData = {...data, players: data.players.filter((p) => p.id !== userId)}
+
+    await setDoc(roomRef, newData)
+
+    return {
+      success: true,
+      message: PLAYER_KICK_SUCCESS
+    }
+  } catch (error) {
+    console.error(error);
   }
 }
