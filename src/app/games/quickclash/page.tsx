@@ -9,6 +9,7 @@ import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import { db } from "@/configs/firebase";
 import { GENERIC_ERROR } from "@/constants/errors";
 import {
+  blockUser,
   CreateRoom,
   deleteRoom,
   joinRoom,
@@ -106,6 +107,17 @@ export default function QuickClashPage() {
       console.error(error);
     }
   };
+
+  const handleBlockUser = async (userId: string) => {
+    try {
+      if(!roomId) return
+      const result = await blockUser({ userId, roomId })
+
+      setMessages(prev => [...prev, result.message])
+    } catch (error) {
+      console.error(error); 
+    }
+  }
 
   const handleKickPLayerFromRoom = async (userId: string) => {
     try {
@@ -328,6 +340,13 @@ export default function QuickClashPage() {
                           router.push(`/profile/${p.username}?id=${p.id}`)
                         }
                       />
+                      <span className="text-orange-600">
+                        <UnderlineButton 
+                          label="block user"
+                          onClick={() => handleBlockUser(p.id)}
+                          noTextColor
+                        />
+                      </span>
                       <span className="text-red-600 hover:text-red-400">
                         <UnderlineButton
                           label="kick"

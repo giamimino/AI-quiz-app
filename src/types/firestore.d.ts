@@ -10,4 +10,5 @@ export interface FireStoreRooms {
   questions_length: number;
   players_limit: number;
   players: { name: string, id: string, username: string }[];
+  bannedPlayers: { id: string }[]
 }

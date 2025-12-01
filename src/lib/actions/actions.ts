@@ -2,11 +2,14 @@
 import {
   ALL_FIELDS_REQUIRED_ERROR,
   ATTEMPT_DELETE_SUCCESS,
+  BANNED_PLAYER_ERROR,
   CHALLENGE_ACCESS_ERROR,
   CHALLENGE_DELETE_SUCCESS,
   CHALLENGE_UPDATE_SUCCESS,
   GENERIC_ERROR,
+  PLAYER_BLOCKED_SUCCESS,
   PLAYER_KICK_SUCCESS,
+  PLAYER_LEFT_SUCCESS,
   ROOM_ALREADY_EXIST_ERROR,
   ROOM_ALREADY_IN_ROOM_ERROR,
   ROOM_CANT_FOUND_ERROR,
@@ -1103,7 +1106,8 @@ export async function CreateRoom({
       players: [user],
       deadline: (now.getTime() + 360).toString(),
       id: roomId,
-      start: false
+      start: false,
+      bannedPlayers: [],
     } as FireStoreRooms);
 
     return {
@@ -1209,6 +1213,11 @@ export async function joinRoom({
 
     const data = snap.data() as FireStoreRooms;
 
+    if(data.bannedPlayers.some(p => p.id === user?.id)) return {
+      success: false,
+      message: BANNED_PLAYER_ERROR
+    }
+
     if (data.createdBy === user?.id)
       return {
         success: false,
@@ -1252,30 +1261,129 @@ export async function kickPlayer({
   roomId: string;
 }) {
   try {
-    if(!roomId) return {
-      success: false,
-      message: GENERIC_ERROR
-    }
+    if (!roomId)
+      return {
+        success: false,
+        message: GENERIC_ERROR,
+      };
 
-    const roomRef = doc(db, "rooms", roomId)
-    const snap = await getDoc(roomRef)
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
 
-    if(!snap.exists()) return {
-      success: false,
-      message: ROOM_CANT_FOUND_ERROR
-    }
+    if (!snap.exists())
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
 
-    const data = snap.data() as FireStoreRooms
+    const data = snap.data() as FireStoreRooms;
 
-    const newData = {...data, players: data.players.filter((p) => p.id !== userId)}
+    const newData = {
+      ...data,
+      players: data.players.filter((p) => p.id !== userId),
+    };
 
-    await setDoc(roomRef, newData)
+    await setDoc(roomRef, newData);
 
     return {
       success: true,
-      message: PLAYER_KICK_SUCCESS
-    }
+      message: PLAYER_KICK_SUCCESS,
+    };
   } catch (error) {
     console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function leaveRoom({
+  roomId,
+  userId,
+}: {
+  roomId: string;
+  userId: string;
+}) {
+  try {
+    if (!roomId)
+      return {
+        success: false,
+        message: GENERIC_ERROR,
+      };
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
+
+    if (!snap.exists())
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
+
+    const data = snap.data() as FireStoreRooms;
+
+    const newData = {
+      ...data,
+      players: data.players.filter((p) => p.id !== userId),
+    };
+
+    await setDoc(roomRef, newData);
+
+    return {
+      success: true,
+      message: PLAYER_LEFT_SUCCESS,
+      roomId,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function blockUser({
+  roomId,
+  userId,
+}: {
+  roomId: string;
+  userId: string;
+}) {
+  try {
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
+
+    if (!snap.exists())
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
+
+    const data = snap.data() as FireStoreRooms;
+
+    const newData = {
+      ...data,
+      players: data.players.filter((p) => p.id !== userId),
+      bannedPlayers: [...data.bannedPlayers, { id: userId }],
+    } as FireStoreRooms;
+
+    await setDoc(roomRef, newData);
+
+    return {
+      success: true,
+      message: PLAYER_BLOCKED_SUCCESS,
+      userId,
+      roomId,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
   }
 }

@@ -20,6 +20,7 @@ model User {
   challenges    Challenge[]     @relation("ChallengeCreator")
   attempts      Attempt[]
   reactions     Reaction[]
+  games Games[]
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -133,6 +134,17 @@ model Reaction {
   @@index([challengeId])
   @@unique([challengeId, userId])
 }
+
+model Game {
+  id            String        @id @default(cuid())
+  type          String
+  playerIds     String[]
+  teamInfo      Json?
+  winnerIds     String[]
+  scores        Json?
+  finishedAt    DateTime      @default(now())
+}
+
 
 enum ChallengeType {
   AI
