@@ -1051,6 +1051,7 @@ export async function CreateRoom({
     id: string;
     name: string;
     username: string;
+    image: string
   };
   status: UserRoomStatus | null;
 }) {

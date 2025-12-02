@@ -9,6 +9,6 @@ export interface FireStoreRooms {
   public: boolean;
   questions_length: number;
   players_limit: number;
-  players: { name: string, id: string, username: string }[];
+  players: { name: string, id: string, username: string, image: string }[];
   bannedPlayers: { id: string }[]
 }

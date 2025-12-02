@@ -58,7 +58,7 @@ export default function QuickClashPage() {
         isPublic,
         ...(user
           ? {
-              user: { name: user.name, username: user.username, id: user.id },
+              user: { ...user },
             }
           : {}),
         status,
