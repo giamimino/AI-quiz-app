@@ -60,12 +60,16 @@ export default function RoomPage({ params }: RoomPageProps) {
         setLoading(false);
       });
   }, []);
+  
 
   useEffect(() => {
     if(!room || !user) return
     if(!room.players.some(p => p.id === user.id)) {
       clearStatus( )
       router.push("/games")
+    }
+    if(room.start) {
+      router.push(`/games/quickclash/room/${roomId}/start`)
     }
   }, [room, user])
   

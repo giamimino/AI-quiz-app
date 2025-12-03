@@ -12,6 +12,7 @@ import {
   blockUser,
   CreateRoom,
   deleteRoom,
+  handleStartRoom,
   joinRoom,
   kickPlayer,
 } from "@/lib/actions/actions";
@@ -89,11 +90,31 @@ export default function QuickClashPage() {
     }
   };
 
+  const handleStartGame = async () => {
+    try {
+      if (!roomId || !user) return;
+      const result = await handleStartRoom({ roomId, userId: user.id });
+
+      setMessages((prev) => [...prev, result.message]);
+
+      if (result.success) {
+        router.push(`/games/quickclash/room/${result.roomId}/start`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleJoinInRoom = async (guestRoomId: string) => {
     try {
       if (!user) return;
       const result = await joinRoom({
-        user: { name: user.name, username: user.username, id: user.id },
+        user: {
+          name: user.name,
+          username: user.username,
+          id: user.id,
+          image: user.image,
+        },
         roomId: guestRoomId,
         status,
       });
@@ -101,7 +122,7 @@ export default function QuickClashPage() {
       setMessages((prev) => [...prev, result.message]);
       if (result.success) {
         setStatus(result.status as UserRoomStatus);
-        router.push(`quickclash/room/${result.roomId}`)
+        router.push(`quickclash/room/${result.roomId}`);
       }
     } catch (error) {
       console.error(error);
@@ -110,14 +131,14 @@ export default function QuickClashPage() {
 
   const handleBlockUser = async (userId: string) => {
     try {
-      if(!roomId) return
-      const result = await blockUser({ userId, roomId })
+      if (!roomId) return;
+      const result = await blockUser({ userId, roomId });
 
-      setMessages(prev => [...prev, result.message])
+      setMessages((prev) => [...prev, result.message]);
     } catch (error) {
-      console.error(error); 
+      console.error(error);
     }
-  }
+  };
 
   const handleKickPLayerFromRoom = async (userId: string) => {
     try {
@@ -149,7 +170,7 @@ export default function QuickClashPage() {
     onSnapshot(roomsRef, (snapshot) => {
       const result: any[] = [];
       console.log(snapshot);
-      
+
       snapshot.forEach((doc) => {
         if (!rooms.some((room) => room.id === doc.id)) {
           result.push({ ...doc.data(), id: doc.id });
@@ -341,7 +362,7 @@ export default function QuickClashPage() {
                         }
                       />
                       <span className="text-orange-600">
-                        <UnderlineButton 
+                        <UnderlineButton
                           label="block user"
                           onClick={() => handleBlockUser(p.id)}
                           noTextColor
@@ -369,7 +390,7 @@ export default function QuickClashPage() {
             >
               Remove Room
             </button>
-            <DefaultButton label="Start" wFit />
+            <DefaultButton label="Start" wFit onClick={handleStartGame} />
           </div>
         </DefaultWrapper>
       )}

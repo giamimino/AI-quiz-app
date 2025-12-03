@@ -1,11 +1,19 @@
 "use client";
 import { RoomPageProps } from "@/app/types/props";
 import PlayersWelcome from "@/components/ui/animations/players-welcome";
+import QuestionsGenerating from "@/components/ui/animations/questions-generating";
 import Loading from "@/components/ui/loading/Loading";
 import { db } from "@/configs/firebase";
+import { GENERIC_ERROR } from "@/constants/errors";
+import {
+  handleStartQuestionsGenerate,
+  handleUpdateQuestionsInRoom,
+} from "@/lib/actions/actions";
 import { FireStoreRooms } from "@/types/firestore";
 import { useUserStore } from "@/zustand/useUserStore";
+import cuid from "cuid";
 import { doc, onSnapshot } from "firebase/firestore";
+import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import React, { use, useEffect, useState } from "react";
 
@@ -16,8 +24,12 @@ export default function RoomStartPage({ params }: RoomPageProps) {
   const { user, setUser } = useUserStore();
   const [room, setRoom] = useState<FireStoreRooms | null>(null);
   const [loading, setLoading] = useState(true);
+  const [messages, setMessages] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
   const [start, setStart] = useState(false);
+
+  console.log("start", start);
+  
 
   function MapRoomPlayers(): {
     [key: string]: { name: string; thumb: string };
@@ -47,7 +59,7 @@ export default function RoomStartPage({ params }: RoomPageProps) {
 
   useEffect(() => {
     const unsub = onSnapshot(roomRef, (snapshot) => {
-      setRoom(snapshot.data() as FireStoreRooms);
+      setRoom({ ...snapshot.data(), id: snapshot.id } as FireStoreRooms);
     });
     setLoading(false);
 
@@ -58,14 +70,25 @@ export default function RoomStartPage({ params }: RoomPageProps) {
     if (!room || !user) return;
 
     if (
-      room.players.length >= room.players_limit ||
+      room.players.length > room.players_limit ||
       !room.players.some((p) => p.id === user.id) ||
       !room.start
     ) {
       router.push("/games");
     } else {
       setStart(true);
-      setGenerating(true);
+      if (room.questions) return;
+      handleStartQuestionsGenerate({ userId: user.id, roomId: roomId })
+        .then((res) => {
+          console.log(res);
+
+          if (res.success) {
+          }
+          if (res.message) {
+            setMessages((prev) => [...prev, res.message]);
+          }
+        })
+        .catch((err) => console.error(err));
       fetch("/api/ai/generate/questions/game", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,8 +101,8 @@ export default function RoomStartPage({ params }: RoomPageProps) {
         .then((data) => {
           if (data.success) {
             const content =
-              data.res?.choices?.[0]?.message?.content ||
-              data.res?.result?.output_text ||
+              data.aiResponse?.choices?.[0]?.message?.content ||
+              data.aiResponse?.result?.output_text ||
               "[]";
 
             const cleaned = content
@@ -87,14 +110,42 @@ export default function RoomStartPage({ params }: RoomPageProps) {
               .replace(/```/g, "")
               .trim();
 
-              try {
-                const parsed = JSON.parse(cleaned);
-              } catch (error) {
-                console.error(error);
-                
-              }
+            try {
+              const parsed = JSON.parse(cleaned);
+
+              const editedParsed = Array.isArray(parsed)
+                ? (parsed.map((q) => ({
+                    ...q,
+                    id: cuid(),
+                  })) as {
+                    question: string;
+                    options: string[];
+                    answer: string;
+                    id: string;
+                  }[])
+                : [];
+
+              handleUpdateQuestionsInRoom({
+                userId: user.id,
+                roomId: room.id,
+                questions: editedParsed,
+              })
+                .then((res) => {
+                  console.log(res);
+
+                  setMessages((prev) => [
+                    ...prev,
+                    res?.message ?? GENERIC_ERROR,
+                  ]);
+                })
+                .catch((err) => console.error(err));
+              setGenerating(false);
+            } catch (error) {
+              console.error(error);
+            }
           }
-        });
+        })
+        .catch((err) => console.error(err));
     }
   }, [room, user]);
 
@@ -111,6 +162,14 @@ export default function RoomStartPage({ params }: RoomPageProps) {
       });
   }, []);
 
+  console.log(generating);
+  
+
+  useEffect(() => {
+    if (!room) return;
+    setGenerating(room.questions_generate_status);
+  }, [room]);
+
   if (loading) return <Loading />;
   if (!room || !user)
     return (
@@ -121,9 +180,19 @@ export default function RoomStartPage({ params }: RoomPageProps) {
   if (start)
     return (
       <PlayersWelcome
+      handleStop={() => setStart(false)}
         thisPl={{ name: user.name, thumb: user.image }}
         players={MapRoomPlayers()}
       />
     );
-  return <div></div>;
+
+  return (
+    <div>
+      {generating && !start && (
+        <AnimatePresence>
+          <QuestionsGenerating />;
+        </AnimatePresence>
+      )}
+    </div>
+  );
 }

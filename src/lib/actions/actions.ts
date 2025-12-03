@@ -1,45 +1,47 @@
 "use server";
 import {
-  ALL_FIELDS_REQUIRED_ERROR,
-  ATTEMPT_DELETE_SUCCESS,
-  BANNED_PLAYER_ERROR,
-  CHALLENGE_ACCESS_ERROR,
-  CHALLENGE_DELETE_SUCCESS,
-  CHALLENGE_UPDATE_SUCCESS,
-  GENERIC_ERROR,
-  PLAYER_BLOCKED_SUCCESS,
-  PLAYER_KICK_SUCCESS,
-  PLAYER_LEFT_SUCCESS,
-  ROOM_ALREADY_EXIST_ERROR,
+  ROOM_QUESTIONS_LENGTH_ERROR,
+  ROOM_NOT_ALLOWED_JOIN_ERROR,
   ROOM_ALREADY_IN_ROOM_ERROR,
+  ALL_FIELDS_REQUIRED_ERROR,
+  CHALLENGE_UPDATE_SUCCESS,
+  CHALLENGE_DELETE_SUCCESS,
+  ROOM_ALREADY_EXIST_ERROR,
+  ROOM_REACHED_LIMIT_ERROR,
+  ROOM_PLAYERS_LIMIT_ERROR,
+  ATTEMPT_DELETE_SUCCESS,
+  CHALLENGE_ACCESS_ERROR,
+  PLAYER_BLOCKED_SUCCESS,
+  ROOM_NOT_ALLOWED_ERROR,
   ROOM_CANT_FOUND_ERROR,
   ROOM_JOIN_SAME_ERROR,
+  BANNED_PLAYER_ERROR,
+  PLAYER_KICK_SUCCESS,
+  PLAYER_LEFT_SUCCESS,
   ROOM_JOIN_SUCCESS,
-  ROOM_NOT_ALLOWED_ERROR,
-  ROOM_NOT_ALLOWED_JOIN_ERROR,
-  ROOM_PLAYERS_LIMIT_ERROR,
-  ROOM_QUESTIONS_LENGTH_ERROR,
-  ROOM_REACHED_LIMIT_ERROR,
+  GENERIC_ERROR,
+  GAME_START_PERMISSION_ERROR,
+  GAME_START_SUCCESS,
+  GAME_START_PLAYERS_ERROR,
 } from "@/constants/errors";
 import { prisma } from "../prisma";
 import { Answers } from "@/app/types/global";
 import { auth } from "../auth";
 import { Challenge, TopicState, UserRoomStatus } from "@/app/types/store";
 import {
-  addDoc,
   collection,
   deleteDoc,
-  doc,
-  getDoc,
   getDocs,
-  query,
+  addDoc,
+  getDoc,
   setDoc,
+  query,
   where,
+  doc,
 } from "firebase/firestore";
 import { db } from "@/configs/firebase";
 import { FireStoreRooms } from "@/types/firestore";
 import cuid from "cuid";
-import { stat } from "fs";
 
 export async function challangeDelete(id: string) {
   try {
@@ -1051,7 +1053,7 @@ export async function CreateRoom({
     id: string;
     name: string;
     username: string;
-    image: string
+    image: string;
   };
   status: UserRoomStatus | null;
 }) {
@@ -1109,6 +1111,8 @@ export async function CreateRoom({
       id: roomId,
       start: false,
       bannedPlayers: [],
+      questions_generate_status: false,
+      questions: null,
     } as FireStoreRooms);
 
     return {
@@ -1180,7 +1184,7 @@ export async function joinRoom({
   roomId,
   status,
 }: {
-  user?: { id: string; name: string; username: string };
+  user?: { id: string; name: string; username: string; image: string };
   roomId: string;
   status: UserRoomStatus | null;
 }) {
@@ -1214,10 +1218,11 @@ export async function joinRoom({
 
     const data = snap.data() as FireStoreRooms;
 
-    if(data.bannedPlayers.some(p => p.id === user?.id)) return {
-      success: false,
-      message: BANNED_PLAYER_ERROR
-    }
+    if (data.bannedPlayers.some((p) => p.id === user?.id))
+      return {
+        success: false,
+        message: BANNED_PLAYER_ERROR,
+      };
 
     if (data.createdBy === user?.id)
       return {
@@ -1379,6 +1384,151 @@ export async function blockUser({
       userId,
       roomId,
     };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function handleStartRoom({
+  roomId,
+  userId,
+}: {
+  roomId: string;
+  userId: string;
+}) {
+  try {
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
+
+    if (!snap.exists())
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
+
+    const data = snap.data() as FireStoreRooms;
+
+    if (data.createdBy !== userId)
+      return {
+        success: false,
+        message: GAME_START_PERMISSION_ERROR,
+      };
+
+    if (
+      data.players.length > 6 ||
+      data.players.length < 2
+    )
+      return {
+        success: false,
+        message: GAME_START_PLAYERS_ERROR,
+      };
+
+    const newData = { ...data, start: true } as FireStoreRooms;
+
+    await setDoc(roomRef, newData);
+
+    return {
+      success: true,
+      message: GAME_START_SUCCESS,
+      roomId,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function handleStartQuestionsGenerate({
+  userId,
+  roomId,
+}: {
+  userId: string;
+  roomId: string;
+}) {
+  try {
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
+
+    if (!snap.exists())
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
+
+    const data = snap.data() as FireStoreRooms;
+
+    if (data.createdBy !== userId)
+      return {
+        success: false,
+        message: GAME_START_SUCCESS,
+      };
+
+    const newData = {
+      ...data,
+      questions_generate_status: true,
+    } as FireStoreRooms;
+
+    await setDoc(roomRef, newData);
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function handleUpdateQuestionsInRoom({
+  userId,
+  roomId,
+  questions,
+}: {
+  userId: string;
+  roomId: string;
+  questions: {
+    id: string;
+    question: string;
+    options: string[];
+    answer: string;
+  }[];
+}) {
+  try {
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
+
+    if (!snap.exists())
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
+
+    const data = snap.data() as FireStoreRooms;
+
+    if (data.createdBy !== userId) {
+      return {
+        success: false,
+      };
+    }
+
+    const newData = {
+      ...data,
+      questions,
+      questions_generate_status: false,
+    } as FireStoreRooms;
+
+    await setDoc(roomRef, newData);
   } catch (error) {
     console.error(error);
     return {

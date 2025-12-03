@@ -9,6 +9,15 @@ export interface FireStoreRooms {
   public: boolean;
   questions_length: number;
   players_limit: number;
-  players: { name: string, id: string, username: string, image: string }[];
-  bannedPlayers: { id: string }[]
+  questions_generate_status: boolean;
+  players: { name: string; id: string; username: string; image: string }[];
+  bannedPlayers: { id: string }[];
+  questions:
+    | {
+        id: string;
+        question: string;
+        options: string[];
+        answer: string;
+      }[]
+    | null;
 }
