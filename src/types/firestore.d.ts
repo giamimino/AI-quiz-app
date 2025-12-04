@@ -10,7 +10,16 @@ export interface FireStoreRooms {
   questions_length: number;
   players_limit: number;
   questions_generate_status: boolean;
-  players: { name: string; id: string; username: string; image: string }[];
+  status: "starting" | "playing" | "ending" | "end"
+  players: {
+    name: string;
+    id: string;
+    score: number | null
+    username: string;
+    image: string;
+    answers: null | { questionId: string; answer: string }[];
+    finished: null | { finishedAt: string };
+  }[];
   bannedPlayers: { id: string }[];
   questions:
     | {

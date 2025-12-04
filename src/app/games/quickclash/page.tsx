@@ -335,6 +335,13 @@ export default function QuickClashPage() {
                     small
                   />
                 )}
+                {room.players.some(p => p.id === user?.id) && room.start && room.status === "playing" && (
+                  <DefaultButton
+                    small
+                    onClick={() => router.push(`/games/quickclash/room/${room.id}/start`)}
+                    icon="codicon:debug-start"
+                  />
+                )}
               </div>
             </DefaultWrapper>
           ))}

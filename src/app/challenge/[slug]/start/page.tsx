@@ -9,6 +9,7 @@ import Timer from "@/components/timer";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import DefaultButton from "@/components/ui/default/default-button";
 import Error from "@/components/ui/error";
+import Loading from "@/components/ui/loading/Loading";
 import { GENERIC_ERROR, RESULT_REQUEST_ERROR } from "@/constants/errors";
 import { challengeStart, sendResult } from "@/lib/actions/actions";
 import { useUserStore } from "@/zustand/useUserStore";
@@ -34,10 +35,9 @@ export default function ChallengeStartPage({ params }: ChallengePageProps) {
     const url = new URL(window.location.href);
     const id = url.searchParams.get("id");
     console.log(id);
-    
+
     if (!id) return;
     setChallengeId(id);
-    
 
     fetch("/api/challenge/question/count", {
       method: "POST",
@@ -97,12 +97,12 @@ export default function ChallengeStartPage({ params }: ChallengePageProps) {
           callBack={async () => {
             if (!start) {
               const res = await challengeStart({ challengeId, userId });
-  
+
               if (res.success) {
                 setStart(true);
                 setAtemptId(res.atempt?.id as string);
-                if(res.finished) {
-                  router.back()
+                if (res.finished) {
+                  router.back();
                 }
               } else {
                 setMessages((prev) => [...prev, res.message ?? GENERIC_ERROR]);
@@ -113,46 +113,57 @@ export default function ChallengeStartPage({ params }: ChallengePageProps) {
       </div>
       <main className="flex flex-col gap-2.5 items-center">
         <QuizWrapper>
-          <Quiz>{questions[position]?.question}</Quiz>
-          <QuizOptions>
-            {questions[position]?.options.map((option) => (
-              <QuizOption
-                key={option.id}
-                option={option.option}
-                selected={answers.some((a) => a.optionId === option.id)}
-                onClick={() => {
-                  setAnswers((prev) => {
-                    const existing = prev.find(
-                      (a) => a.questionId === questions[position].id
-                    );
+          {questions[position] ? (
+            <>
+              <Quiz key={questions[position]?.id}>
+                {questions[position]?.question}
+              </Quiz>
+              <QuizOptions>
+                {questions[position]?.options.map((option) => (
+                  <QuizOption
+                    key={option.id}
+                    option={option.option}
+                    selected={answers.some((a) => a.optionId === option.id)}
+                    onClick={() => {
+                      setAnswers((prev) => {
+                        const existing = prev.find(
+                          (a) => a.questionId === questions[position].id
+                        );
 
-                    if (existing) {
-                      return prev.map((a) =>
-                        a.questionId === questions[position].id
-                          ? {
-                              questionId: questions[position].id,
-                              optionId: option.id,
-                              isCorrect: option.isCorrect,
-                            }
-                          : a
+                        if (existing) {
+                          return prev.map((a) =>
+                            a.questionId === questions[position].id
+                              ? {
+                                  questionId: questions[position].id,
+                                  optionId: option.id,
+                                  isCorrect: option.isCorrect,
+                                }
+                              : a
+                          );
+                        }
+
+                        return [
+                          ...prev,
+                          {
+                            questionId: questions[position].id,
+                            optionId: option.id,
+                            isCorrect: option.isCorrect,
+                          },
+                        ];
+                      });
+
+                      setPosition((prev) =>
+                        prev + 1 < count ? prev + 1 : prev
                       );
-                    }
-
-                    return [
-                      ...prev,
-                      {
-                        questionId: questions[position].id,
-                        optionId: option.id,
-                        isCorrect: option.isCorrect,
-                      },
-                    ];
-                  });
-
-                  setPosition((prev) => (prev + 1 < count ? prev + 1 : prev));
-                }}
-              />
-            ))}
-          </QuizOptions>
+                    }}
+                  />
+                ))}
+              </QuizOptions>
+            </>
+          ) : (
+            <div className="relative">
+            </div>
+          )}
           {start && (
             <div className="flex justify-between gap-2.5">
               <DefaultButton
@@ -184,12 +195,15 @@ export default function ChallengeStartPage({ params }: ChallengePageProps) {
                 label="Result"
                 onClick={async () => {
                   if (answers.length === count) {
-                    const res = await sendResult({ answers, attemptId })
+                    const res = await sendResult({ answers, attemptId });
 
-                    if(res.success) {
-                      router.push(`result?attemptId=${res.attemptId}`)
+                    if (res.success) {
+                      router.push(`result?attemptId=${res.attemptId}`);
                     } else {
-                      setMessages((prev) => [...prev, (res.message ?? GENERIC_ERROR)]);
+                      setMessages((prev) => [
+                        ...prev,
+                        res.message ?? GENERIC_ERROR,
+                      ]);
                     }
                   } else {
                     setMessages((prev) => [...prev, RESULT_REQUEST_ERROR]);

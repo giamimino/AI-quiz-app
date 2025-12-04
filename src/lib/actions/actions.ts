@@ -23,6 +23,7 @@ import {
   GAME_START_PERMISSION_ERROR,
   GAME_START_SUCCESS,
   GAME_START_PLAYERS_ERROR,
+  ANSWER_ALREADY_DID_ERROR,
 } from "@/constants/errors";
 import { prisma } from "../prisma";
 import { Answers } from "@/app/types/global";
@@ -38,6 +39,7 @@ import {
   query,
   where,
   doc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "@/configs/firebase";
 import { FireStoreRooms } from "@/types/firestore";
@@ -1106,13 +1108,14 @@ export async function CreateRoom({
       public: isPublic,
       createdBy: effectiveUserId,
       createdAt: now.getTime().toString(),
-      players: [user],
+      players: [{ ...user, answers: null, finished: null, score: null }],
       deadline: (now.getTime() + 360).toString(),
       id: roomId,
       start: false,
       bannedPlayers: [],
       questions_generate_status: false,
       questions: null,
+      status: "starting",
     } as FireStoreRooms);
 
     return {
@@ -1238,8 +1241,11 @@ export async function joinRoom({
 
     const newData = {
       ...data,
-      players: [...data.players, user],
-    };
+      players: [
+        ...data.players,
+        { ...user, answers: null, finished: null, score: null },
+      ],
+    } as FireStoreRooms;
 
     await setDoc(roomRef, newData);
 
@@ -1419,16 +1425,17 @@ export async function handleStartRoom({
         message: GAME_START_PERMISSION_ERROR,
       };
 
-    if (
-      data.players.length > 6 ||
-      data.players.length < 2
-    )
+    if (data.players.length > 6 || data.players.length < 2)
       return {
         success: false,
         message: GAME_START_PLAYERS_ERROR,
       };
 
-    const newData = { ...data, start: true } as FireStoreRooms;
+    const newData = {
+      ...data,
+      start: true,
+      status: "playing",
+    } as FireStoreRooms;
 
     await setDoc(roomRef, newData);
 
@@ -1529,6 +1536,144 @@ export async function handleUpdateQuestionsInRoom({
     } as FireStoreRooms;
 
     await setDoc(roomRef, newData);
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function handleSubmitAnswer({
+  roomId,
+  answer,
+  userId,
+  isCorrect,
+}: {
+  roomId: string;
+  userId: string;
+  isCorrect: boolean;
+  answer: { questionId: string; answer: string };
+}) {
+  try {
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
+
+    if (!snap.exists)
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
+
+    const data = snap.data() as FireStoreRooms;
+    const user = data.players.find((p) => p.id === userId);
+    const existing = user?.answers?.find(
+      (a) => answer.questionId === a.questionId
+    );
+
+    if (existing)
+      return {
+        success: false,
+        message: ANSWER_ALREADY_DID_ERROR,
+      };
+
+    const newData = {
+      ...data,
+      players: data.players.map((p) =>
+        p.id === userId
+          ? {
+              ...p,
+              answers: [...(p.answers ?? []), answer],
+              score: (p.score ?? 0) + (isCorrect ? 100 : 50),
+            }
+          : p
+      ),
+    } as FireStoreRooms;
+
+    await setDoc(roomRef, newData);
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function handleUserEndBattle({
+  roomId,
+  userId,
+}: {
+  roomId: string;
+  userId: string;
+}) {
+  try {
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
+
+    if (!snap.exists())
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
+
+    const data = snap.data() as FireStoreRooms;
+    const now = new Date();
+
+    const newData = {
+      ...data,
+      status: "ending",
+      players: data.players.map((p) =>
+        p.id === userId ? { ...p, finished: { finishedAt: now } } : p
+      ),
+    } as FireStoreRooms;
+
+    await setDoc(roomRef, newData);
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function handleEndBattle({ roomId }: { roomId: string }) {
+  try {
+    const roomRef = doc(db, "rooms", roomId);
+    const snap = await getDoc(roomRef);
+
+    if (!snap.exists())
+      return {
+        success: false,
+        message: ROOM_CANT_FOUND_ERROR,
+      };
+
+    const data = snap.data() as FireStoreRooms;
+    const now = new Date();
+
+    const newData = {
+      ...data,
+      players: data.players.map((p) =>
+        p.finished ? p : { ...p, finished: { finishedAt: now } }
+      ),
+    } as FireStoreRooms;
+
+    await setDoc(roomRef, newData);
+
+    return {
+      success: true,
+    };
   } catch (error) {
     console.error(error);
     return {
