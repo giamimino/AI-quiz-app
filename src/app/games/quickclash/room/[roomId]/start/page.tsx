@@ -128,6 +128,10 @@ export default function RoomStartPage({ params }: RoomPageProps) {
       return;
     }
 
+    if(room.status === "ending") {
+      router.push("result")
+    }
+
     if (initialized) return;
     setStart(true);
     const thisPl = room.players.find(p => p.id === user.id)
