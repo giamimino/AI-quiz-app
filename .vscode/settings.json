@@ -1,0 +1,6 @@
+{
+  "[prisma]": {
+    "editor.defaultFormatter": null
+  },
+  "prisma.languageServer.enabled": false
+}

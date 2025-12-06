@@ -14,7 +14,9 @@ export default function DefaultWrapper({
   noOverflow,
   gap,
   col,
-  solid
+  solid,
+  justifyBetween,
+  borderColor
 }: Children & {
   noBorder?: { t?: boolean; r?: boolean; b?: boolean; l?: boolean } | boolean;
   noRounded?:
@@ -30,7 +32,9 @@ export default function DefaultWrapper({
   noOverflow?: boolean,
   gap?: number,
   col?: boolean,
-  solid?: boolean
+  solid?: boolean,
+  justifyBetween?: boolean,
+  borderColor?: string
 }) {
   const borders = {
     "border-t-0": typeof noBorder === "object" && noBorder?.t,
@@ -41,16 +45,17 @@ export default function DefaultWrapper({
   };
 
   const rounds = {
-    "rounded-tl-0": typeof noRounded === "object" && noRounded?.tl,
-    "rounded-tr-0": typeof noRounded === "object" && noRounded?.tr,
-    "rounded-bl-0": typeof noRounded === "object" && noRounded?.bl,
-    "rounded-br-0": typeof noRounded === "object" && noRounded?.br,
+    "rounded-tl-none": typeof noRounded === "object" && noRounded?.tl,
+    "rounded-tr-none": typeof noRounded === "object" && noRounded?.tr,
+    "rounded-bl-none": typeof noRounded === "object" && noRounded?.bl,
+    "rounded-br-none": typeof noRounded === "object" && noRounded?.br,
     "rounded-none": noRounded === true,
   };
   return (
     <div
       className={clsx(
-        `border-2 border-dark-15 rounded-xl`,
+        `border-2`,
+        !noRounded && "rounded-xl",
         borders,
         rounds,
         wFit ? "w-fit" : "w-full",
@@ -60,7 +65,9 @@ export default function DefaultWrapper({
         noOverflow && "overflow-hidden",
         col && !dFlex && "flex flex-col",
         col && "flex-col",
-        solid ? "border-solid" : "border-dashed"
+        solid ? "border-solid" : "border-dashed",
+        justifyBetween && "justify-between",
+        !borderColor && "border-dark-15"
       )}
       style={{
         padding: p
@@ -72,7 +79,8 @@ export default function DefaultWrapper({
           : "",
           flex: flex,
           flexBasis: flexBasis,
-          gap: gap ? `${gap * 4}px` : ""
+          gap: gap ? `${gap * 4}px` : "",
+          borderColor: borderColor ?? ""
       }}
     >
       {children}

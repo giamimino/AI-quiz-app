@@ -10,16 +10,9 @@ export interface FireStoreRooms {
   questions_length: number;
   players_limit: number;
   questions_generate_status: boolean;
-  status: "starting" | "playing" | "ending" | "end"
-  players: {
-    name: string;
-    id: string;
-    score: number | null
-    username: string;
-    image: string;
-    answers: null | { questionId: string; answer: string }[];
-    finished: null | { finishedAt: string };
-  }[];
+  status: "starting" | "playing" | "ending" | "end";
+  startedAt: string | null;
+  players: FireStoreRoomPlayers[];
   bannedPlayers: { id: string }[];
   questions:
     | {
@@ -29,4 +22,19 @@ export interface FireStoreRooms {
         answer: string;
       }[]
     | null;
+}
+
+export interface FireStoreRoomPlayerAnswer {
+  questionId: string;
+  answer: string;
+}
+
+export interface FireStoreRoomPlayers {
+  name: string;
+  id: string;
+  score: number | null;
+  username: string;
+  image: string;
+  answers: null | FireStoreRoomPlayerAnswer[];
+  finished: null | { finishedAt: string };
 }

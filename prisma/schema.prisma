@@ -20,10 +20,11 @@ model User {
   challenges    Challenge[]     @relation("ChallengeCreator")
   attempts      Attempt[]
   reactions     Reaction[]
-  games Games[]
- 
+  games GamePlayers[]
+   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
 }
  
 model Account {
@@ -137,14 +138,29 @@ model Reaction {
 
 model Game {
   id            String        @id @default(cuid())
-  type          String
-  playerIds     String[]
-  teamInfo      Json?
-  winnerIds     String[]
-  scores        Json?
-  finishedAt    DateTime      @default(now())
+  type          GameTypes
+  winnerId      String
+  deadLine      Int?
+  roomId String @unique
+
+  finishedAt    DateTime @default(now())
+
+  players GamePlayers[]
 }
 
+model GamePlayers {
+  id String @id @default(cuid())
+  gameId String
+  userId String
+  score Int?
+  finishedAt DateTime @default(now())
+
+  game Game @relation(fields: [gameId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([gameId])
+  @@index([userId])
+}
 
 enum ChallengeType {
   AI
@@ -155,4 +171,8 @@ enum ReactionType {
   LIKE
   DISLIKE
   STAR
+}
+
+enum GameTypes {
+  quickclash
 }

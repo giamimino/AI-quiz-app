@@ -1116,6 +1116,7 @@ export async function CreateRoom({
       questions_generate_status: false,
       questions: null,
       status: "starting",
+      startedAt: null
     } as FireStoreRooms);
 
     return {
@@ -1418,6 +1419,7 @@ export async function handleStartRoom({
       };
 
     const data = snap.data() as FireStoreRooms;
+    const now = new Date()
 
     if (data.createdBy !== userId)
       return {
@@ -1435,6 +1437,7 @@ export async function handleStartRoom({
       ...data,
       start: true,
       status: "playing",
+      startedAt: now.getTime().toString()
     } as FireStoreRooms;
 
     await setDoc(roomRef, newData);
