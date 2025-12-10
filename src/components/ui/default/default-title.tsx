@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 export default function DefaultTitle({
   title,
@@ -28,11 +28,9 @@ export default function DefaultTitle({
     fontSize: `clamp(${min}px, ${fluid}vw, ${max}px)`,
   };
 
-  useEffect(() => {
-    if (CustomClass && titleRef.current) {
-      titleRef.current.classList.add(...CustomClass.split(" "));
-    }
-  }, []);
+  if (CustomClass && titleRef.current) {
+    titleRef.current.classList.add(...CustomClass.split(" "));
+  }
 
   return (
     <h1

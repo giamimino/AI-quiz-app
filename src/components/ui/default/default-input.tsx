@@ -6,12 +6,14 @@ export default function DefaultInput({
   center,
   textarea,
   color,
+  effects = true,
   ...rest
 }: {
   value: string;
   textarea?: boolean;
   color?: string;
   center?: boolean;
+  effects?: boolean
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
@@ -24,7 +26,7 @@ export default function DefaultInput({
       className={`h-8 rounded-xs outline-none px-2 py-0.75 transition-all duration-200 ${
         color ? `text-${color}` : "text-white"
       }
-        ${value.trim() ? "border-transparent" : "border border-amber-50"} ${
+        ${value.trim() && effects ? "border-transparent" : "border border-amber-50"} ${
         center && "text-center"
       }`}
       value={value}
@@ -35,7 +37,7 @@ export default function DefaultInput({
       className={`h-8 rounded-xs outline-none px-2 transition-all duration-200 ${
         color ? `text-${color}` : "text-white"
       }
-        ${value.trim() ? "border-transparent" : "border border-amber-50"} ${
+        ${value.trim() && effects ? "border-transparent" : "border border-amber-50"} ${
         center && "text-center"
       }`}
       value={value}

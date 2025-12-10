@@ -20,6 +20,7 @@
   --color-grey-80: #cbcbc9;
   --color-grey-90: #e2e2e0;
   --color-grey-100: #f5f5f3;
+  --color-orange-10: #d88488
 }
 
 body {
@@ -29,6 +30,10 @@ body {
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
+}
+
+.orange-box-shadow {
+  box-shadow: 1px 1px 2px #d88488;
 }
 
 .auto-text {

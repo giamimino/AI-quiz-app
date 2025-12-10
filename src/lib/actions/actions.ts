@@ -915,9 +915,19 @@ export async function countScore({ userId }: { userId?: string | null }) {
         message: GENERIC_ERROR,
       };
 
+    const gameScores = await prisma.gamePlayers.aggregate({
+      _sum: {
+        score: true,
+      },
+      where: {
+        userId: effectiveUserId,
+      },
+    });
+
     return {
       success: true,
       totalScore,
+      gameScores,
     };
   } catch (error) {
     console.log(error);
@@ -991,9 +1001,28 @@ export async function requestAttemptsActivity({
         message: GENERIC_ERROR,
       };
 
+    const games = await prisma.gamePlayers.findMany({
+      where: { userId: effectiveUserId },
+      select: {
+        score: true,
+        finishedAt: true,
+      },
+    });
+
+    if (!games)
+      return {
+        success: false,
+        message: GENERIC_ERROR,
+      };
+
+    const formatedGames = games.map((g) => ({
+      score: g.score,
+      startedAt: g.finishedAt,
+    }));
+
     return {
       success: true,
-      attempts,
+      attempts: [...attempts, ...formatedGames],
     };
   } catch (error) {
     console.error(error);
@@ -1116,7 +1145,7 @@ export async function CreateRoom({
       questions_generate_status: false,
       questions: null,
       status: "starting",
-      startedAt: null
+      startedAt: null,
     } as FireStoreRooms);
 
     return {
@@ -1419,7 +1448,7 @@ export async function handleStartRoom({
       };
 
     const data = snap.data() as FireStoreRooms;
-    const now = new Date()
+    const now = new Date();
 
     if (data.createdBy !== userId)
       return {
@@ -1437,7 +1466,7 @@ export async function handleStartRoom({
       ...data,
       start: true,
       status: "playing",
-      startedAt: now.getTime().toString()
+      startedAt: now.getTime().toString(),
     } as FireStoreRooms;
 
     await setDoc(roomRef, newData);
@@ -1676,6 +1705,63 @@ export async function handleEndBattle({ roomId }: { roomId: string }) {
 
     return {
       success: true,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function handleGetGamesByUser({ userId }: { userId?: string }) {
+  try {
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function handleCountBettleStatus({ userId }: { userId?: string }) {
+  try {
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
+
+    const [row] = await prisma.$queryRawUnsafe<
+      { games_played: bigint; wins: bigint; losses: bigint }[]
+    >(
+      `SELECT 
+        COUNT(*) FILTER (WHERE g."winnerId" = $1) AS wins,
+        COUNT(*) FILTER (WHERE g."winnerId" != $1) AS losses
+      FROM "GamePlayers" gp
+      JOIN "Game" g ON g.id = gp."gameId"
+      WHERE gp."userId" = $1;
+      `,
+      effectiveUserId
+    );
+
+    if (!row)
+      return {
+        success: false,
+        message: GENERIC_ERROR,
+      };
+
+    const stats = {
+      wins: Number(row.wins),
+      losses: Number(row.losses),
+    };
+
+    return {
+      success: true,
+      stats,
     };
   } catch (error) {
     console.error(error);

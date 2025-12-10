@@ -161,6 +161,18 @@ export default function ProfilePage() {
         >
           <Icon icon={"carbon:game-console"} />
         </button>
+        <button
+          onClick={() => router.push("/m")}
+          className="text-white p-1 border border-white cursor-pointer rounded-lg hover:bg-white hover:text-dark-06 transition-all duration-400 relative"
+        >
+          <Icon icon={"humbleicons:chats"} />
+          <div
+            className="absolute text-[8px] bg-red-600 rounded-full py-px px-1.5 flex justify-center 
+            items-center font-bold -top-1/4 -left-1/4 text-white"
+          >
+            <span>1</span>
+          </div>
+        </button>
       </div>
       <AnimatePresence>
         {message.length > 0 && (

@@ -1,33 +1,48 @@
 "use client";
 import {
-  AreaChartComponent,
+  AreaChartComponentDefault,
+  AreaChartComponentLined,
   StatisticContianer,
 } from "@/components/templates/statistic-components";
 import Error from "@/components/ui/error";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import Title from "@/components/ui/default/title";
 import { GENERIC_ERROR } from "@/constants/errors";
-import { countScore, requestAttemptsActivity } from "@/lib/actions/actions";
+import {
+  countScore,
+  handleCountBettleStatus,
+  requestAttemptsActivity,
+} from "@/lib/actions/actions";
 import { useUserStore } from "@/zustand/useUserStore";
 import { Icon } from "@iconify/react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { Activity, useEffect, useState } from "react";
 import months from "@/data/months.json";
 
 export default function StatisticPage() {
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState<{ challenge: number; game: number }>({
+    challenge: 0,
+    game: 0,
+  });
   const [messages, setMessages] = useState<string[]>([]);
   const [activity, setActivity] = useState<
     { startedAt: string; score: number }[] | null
   >(null);
+  const [gameStats, setGameStats] = useState<{
+    wins: number;
+    losses: number;
+  } | null>(null);
   const router = useRouter();
   const userId = useUserStore((state) => state.user?.id);
 
   useEffect(() => {
     countScore({ userId }).then((res) => {
       if (res.success) {
-        setScore(res.totalScore?._sum.score as number);
+        setScore({
+          challenge: res.totalScore?._sum.score as number,
+          game: res.gameScores?._sum.score as number,
+        });
       } else {
         setMessages((prev) => [...prev, res.message ?? GENERIC_ERROR]);
       }
@@ -40,9 +55,15 @@ export default function StatisticPage() {
         const sortedAttempts = res.attempts.sort(
           (a, b) => a.startedAt.getTime() - b.startedAt.getTime()
         );
-        const formatted = sortedAttempts.map(a => ({
-          startedAt: `${a.startedAt.getDate()} ${months[a.startedAt.getMonth()].slice(0, 3)} ${a.startedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`,
-          score: Number(a.score)
+        const formatted = sortedAttempts.map((a) => ({
+          startedAt: `${a.startedAt.getDate()} ${months[
+            a.startedAt.getMonth()
+          ].slice(0, 3)} ${a.startedAt.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })}`,
+          score: Number(a.score),
         }));
         setActivity(formatted);
       } else {
@@ -51,8 +72,16 @@ export default function StatisticPage() {
     });
   }, []);
 
+  useEffect(() => {
+    handleCountBettleStatus({ userId }).then((res) => {
+      if (res.success && res.stats) {
+        setGameStats(res.stats)
+      }
+    });
+  }, []);
+
   return (
-    <div className="px-5">
+    <div className="px-5 flex flex-col gap-2.5">
       <AnimatePresence>
         {messages.length > 0 && (
           <ErrorsWrapper>
@@ -80,16 +109,30 @@ export default function StatisticPage() {
         <Title>Statistics</Title>
       </div>
       <StatisticContianer wFit>
-        <h1 className="text-white">score: {score}p</h1>
+        {Object.entries(score).map(([key, value]) => (
+          <h1 key={key} className="text-white">
+            {key.charAt(0).toUpperCase() + key.slice(1)} Score: {value}p
+          </h1>
+        ))}
+        <h1 className="text-white">
+          Total Score: {score.challenge + score.game}p
+        </h1>
       </StatisticContianer>
       {activity && (
         <StatisticContianer>
           <Title>Activity</Title>
-          <AreaChartComponent
-            data={activity}
-          />
+          <AreaChartComponentLined data={activity} />
         </StatisticContianer>
       )}
+      <StatisticContianer>
+        {gameStats && (
+          <AreaChartComponentDefault
+            data={Object.entries(gameStats).map(([key, value]) => ({ label: key, value }))}
+            dataKey="value"
+            xKey="label"
+          />
+        )}
+      </StatisticContianer>
     </div>
   );
 }

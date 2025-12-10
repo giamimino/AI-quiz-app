@@ -2,31 +2,39 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
- 
+
 generator client {
   provider = "prisma-client-js"
 }
- 
+
 model User {
-  id            String          @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String
-  username      String          @unique
-  email         String          @unique
+  username      String    @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
-  birthday     DateTime?
+  birthday      DateTime?
 
-  challenges    Challenge[]     @relation("ChallengeCreator")
-  attempts      Attempt[]
-  reactions     Reaction[]
-  games GamePlayers[]
-   
+  challenges Challenge[]   @relation("ChallengeCreator")
+  attempts   Attempt[]
+  reactions  Reaction[]
+  games      GamePlayers[]
+
+  friendRequestsSent     FriendRequest[] @relation("FriendRequestsSent")
+  friendRequestsReceived FriendRequest[] @relation("FriendRequestsReceived")
+
+  friends   Friend[] @relation("UserFriends")
+  friendsOf Friend[] @relation("UserFriendOf")
+
+  conversationParticipant ConversationParticipant[]
+  messages                Message[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
 }
- 
+
 model Account {
   userId            String
   type              String
@@ -39,29 +47,28 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
- 
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
- 
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+
   @@id([provider, providerAccountId])
 }
 
-
 model Challenge {
-  id          String     @id @default(cuid())
+  id          String        @id @default(cuid())
   title       String
   description String?
-  slug        String     @unique
+  slug        String        @unique
   topic       String?
   type        ChallengeType
   createdBy   String
-  creator     User       @relation("ChallengeCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  
-  questions   Question[]
-  attempts    Attempt[]
-  reactions   Reaction[]
+  creator     User          @relation("ChallengeCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  questions Question[]
+  attempts  Attempt[]
+  reactions Reaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -73,9 +80,9 @@ model Question {
   aiGenerated Boolean   @default(false)
   challengeId String
   challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-  
-  options     Option[]
-  Answer      Answer[]
+
+  options Option[]
+  Answer  Answer[]
 
   @@index([challengeId])
 }
@@ -87,7 +94,8 @@ model Option {
   questionId String
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  Answer     Answer[]
+  Answer Answer[]
+
   @@index([questionId])
 }
 
@@ -99,60 +107,62 @@ model Attempt {
   streak      Int       @default(0)
   startedAt   DateTime  @default(now())
   finishedAt  DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
-  user        User      @relation(fields: [userId], references: [id])
-  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-  answers     Answer[]
+  user      User      @relation(fields: [userId], references: [id])
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  answers   Answer[]
 
   @@index([userId])
   @@index([challengeId])
 }
 
 model Answer {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   attemptId  String
   questionId String
   optionId   String
   isCorrect  Boolean
 
-  attempt    Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  option     Option   @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  attempt  Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  option   Option   @relation(fields: [optionId], references: [id], onDelete: Cascade)
 }
 
 model Reaction {
-  id          String        @id @default(cuid())
+  id          String       @id @default(cuid())
   userId      String
   challengeId String
   type        ReactionType
-  createdAt   DateTime      @default(now())
+  createdAt   DateTime     @default(now())
 
-  user        User          @relation(fields: [userId], references: [id])
-  challenge   Challenge     @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
 
+  @@unique([challengeId, userId])
   @@index([userId])
   @@index([challengeId])
-  @@unique([challengeId, userId])
 }
 
 model Game {
-  id            String        @id @default(cuid())
-  type          GameTypes
-  winnerId      String
-  deadLine      Int?
-  roomId String @unique
+  id       String    @id @default(cuid())
+  type     GameTypes
+  winnerId String
+  deadLine Int?
+  roomId   String    @unique
 
-  finishedAt    DateTime @default(now())
+  finishedAt DateTime @default(now())
 
   players GamePlayers[]
+
+  @@index([winnerId])
 }
 
 model GamePlayers {
-  id String @id @default(cuid())
-  gameId String
-  userId String
-  score Int?
+  id         String   @id @default(cuid())
+  gameId     String
+  userId     String
+  score      Int?
   finishedAt DateTime @default(now())
 
   game Game @relation(fields: [gameId], references: [id])
@@ -160,6 +170,63 @@ model GamePlayers {
 
   @@index([gameId])
   @@index([userId])
+}
+
+model FriendRequest {
+  id          String @id @default(cuid())
+  requesterId String
+  receiverId  String
+
+  requester User @relation("FriendRequestsSent", fields: [requesterId], references: [id])
+  receiver  User @relation("FriendRequestsReceived", fields: [receiverId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Friend {
+  id       String @id @default(cuid())
+  userId   String
+  friendId String
+
+  user   User @relation("UserFriends", fields: [userId], references: [id])
+  friend User @relation("UserFriendOf", fields: [friendId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lastMessageId String?  @unique
+  lastMessage   Message? @relation("LastMessage", fields: [lastMessageId], references: [id])
+
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id             String @id @default(cuid())
+  conversationId String
+  userId         String
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id              String @id @default(cuid())
+  converstationId String
+  senderId        String
+  text            String
+
+  conversation Conversation @relation(fields: [converstationId], references: [id])
+  sender       User         @relation(fields: [senderId], references: [id])
+
+  conversationAsLastMessage Conversation? @relation("LastMessage")
 }
 
 enum ChallengeType {

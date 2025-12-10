@@ -8,6 +8,8 @@ import {
   YAxis,
   XAxis,
   Tooltip,
+  BarChart,
+  Bar,
 } from "recharts";
 import colors from "@/data/colors/colors.json";
 
@@ -27,7 +29,7 @@ export function StatisticContianer({
   );
 }
 
-export function AreaChartComponent({
+export function AreaChartComponentLined({
   data,
 }: {
   data: { startedAt: string; score: number }[];
@@ -58,5 +60,34 @@ export function AreaChartComponent({
         />
       </AreaChart>
     </ResponsiveContainer>
+  );
+}
+
+export function CustomTooltip({ payload, label, active }: any) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="custom-tooltip border border-orange-10 bg-white p-2.5 rounded-lg orange-box-shadow">
+        <p className="label" style={{ margin: '0', fontWeight: '700' }}>{`${label} : ${payload[0].value}`}</p>
+      </div>
+    );
+  }
+}
+
+export function AreaChartComponentDefault({
+  data,
+  dataKey,
+  xKey
+}: {
+  data: any;
+  dataKey: string;
+  xKey: string
+}) {
+  return (
+    <BarChart data={data} width={600} height={300}>
+      <YAxis allowDecimals={false} domain={["dataMin", "dataMax"]} />
+      <XAxis stroke="white" dataKey={xKey} />
+      <Tooltip content={CustomTooltip} defaultIndex={2} cursor={false} />
+      <Bar dataKey={dataKey} fill="#c2b4a3" barSize={30} />
+    </BarChart>
   );
 }

@@ -28,6 +28,7 @@ export default function ChallengeStartPage({ params }: ChallengePageProps) {
   const [count, setCount] = useState(0);
   const [attemptId, setAtemptId] = useState("");
   const userId = useUserStore((state) => state.user)?.id ?? null;
+  const { setUser } = useUserStore()
   const router = useRouter();
 
   useEffect(() => {
@@ -60,12 +61,15 @@ export default function ChallengeStartPage({ params }: ChallengePageProps) {
     fetch("/api/challenge/question/get", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ challengeId }),
+      body: JSON.stringify({ challengeId, userId }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           setQuestions((prev) => [...prev, data.question]);
+          if(data.session) {
+            setUser(data.session)
+          }
         } else {
           setMessages((prev) => [...prev, data.message]);
         }

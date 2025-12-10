@@ -35,6 +35,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         where: { id: token.sub },
         select: { username: true },
       });
+
+      if (!dbUser) return session;
+      
       return {
         ...session,
         user: {
