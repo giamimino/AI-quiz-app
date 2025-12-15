@@ -1,4 +1,5 @@
 import { GENERIC_ERROR, USER_NOT_FOUND_ERROR } from "@/constants/errors";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -11,9 +12,12 @@ function errorResponse(message: string) {
 
 export async function POST(req: Request) {
   try {
-    const { username, userId }: { username: string; userId?: string | null } =
+    const { username, userId, mainUserId }: { username: string; userId?: string | null, mainUserId?: string | null } =
       await req.json();
     if (!username) return errorResponse(GENERIC_ERROR);
+
+    const session = mainUserId ? null : await auth()
+    const effectiveUserId = mainUserId ?? session?.user?.id
 
     const user = await prisma.user.findUnique({
       where: { ...(userId ? { id: userId } : { username }) },
@@ -32,6 +36,17 @@ export async function POST(req: Request) {
             slug: true,
             topic: true,
             type: true,
+          }
+        },
+        friendRequestsReceived: {
+          where: { requesterId: effectiveUserId },
+          select: {
+            id: true,
+            requester: {
+              select: {
+                id: true
+              }
+            }
           }
         }
       },

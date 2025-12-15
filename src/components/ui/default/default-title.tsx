@@ -19,7 +19,7 @@ export default function DefaultTitle({
   const titleRef = useRef<HTMLHeadingElement>(null);
   const base = text || 16;
 
-  const min = Math.round(base * 0.7);
+  const min = Math.round(base * 0.8);
   const max = base;
   const fluid = (base / 16) * 1.2;
 

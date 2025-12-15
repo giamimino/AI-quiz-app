@@ -1772,3 +1772,230 @@ export async function handleCountBettleStatus({ userId }: { userId?: string }) {
     };
   }
 }
+
+export async function handleCheckFriendRequests({
+  userId,
+  skipIds,
+}: {
+  userId?: string;
+  skipIds?: string[];
+}) {
+  try {
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
+
+    const friendRequests = await prisma.user.findUnique({
+      where: { id: effectiveUserId },
+      select: {
+        friendRequestsReceived: {
+          where: { ...(skipIds ? { id: { notIn: skipIds } } : {}) },
+          select: {
+            createdAt: true,
+            id: true,
+            requester: {
+              select: {
+                username: true,
+                id: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
+          take: 10,
+        },
+      },
+    });
+
+    if (!friendRequests)
+      return {
+        success: false,
+        message: GENERIC_ERROR,
+      };
+
+    return {
+      success: true,
+      session,
+      friendRequests,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function responseFriendRequest({
+  requesterId,
+  receiverId,
+  status,
+  requestId,
+}: {
+  requesterId: string;
+  receiverId?: string;
+  requestId: string;
+  status: "accept" | "reject";
+}) {
+  try {
+    const session = receiverId ? null : await auth();
+    const effectiveReceiverId = receiverId ?? session?.user?.id;
+    let result;
+    if (status === "accept") {
+      result = await prisma.friend.create({
+        data: {
+          userId: effectiveReceiverId as string,
+          friendId: requesterId,
+        },
+        select: {
+          id: true,
+        },
+      });
+    }
+
+    await prisma.friendRequest.delete({
+      where: { id: requestId },
+    });
+
+    return {
+      success: true,
+      result,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function removeFriendRequest({
+  requestId,
+}: {
+  requestId: string;
+}) {
+  try {
+    await prisma.friendRequest.delete({
+      where: { id: requestId },
+    });
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error();
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
+    };
+  }
+}
+
+export async function handleGetFriends({
+  userId,
+  skipIds,
+}: {
+  userId?: string;
+  skipIds?: string[];
+}) {
+  try {
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
+
+    const friends = await prisma.friend.findMany({
+      where: {
+        OR: [{ userId: effectiveUserId }, { friendId: effectiveUserId }],
+        ...(skipIds ? { id: { notIn: skipIds } } : {}),
+      },
+      select: {
+        id: true,
+        friend: {
+          select: {
+            name: true,
+            image: true,
+            id: true,
+          },
+        },
+        user: {
+          select: {
+            name: true,
+            image: true,
+            id: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+      take: 10,
+    });
+
+    const normalizedFriends = friends.map((f) => {
+      if (f.user.id === effectiveUserId) {
+        return { friend: f.friend, id: f.id };
+      }
+
+      return { friend: f.user, id: f.id };
+    });
+
+    return {
+      success: true,
+      friends: normalizedFriends,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMesssage: error,
+    };
+  }
+}
+
+export async function handleGetConversationParticants({
+  userId,
+  skipIds,
+}: {
+  userId?: string;
+  skipIds?: string[];
+}) {
+  try {
+    const session = userId ? null : await auth();
+    const effectiveUserId = userId ?? session?.user?.id;
+
+    const conversationParticipant =
+      await prisma.conversationParticipant.findMany({
+        where: {
+          userId: effectiveUserId,
+          ...(skipIds ? { id: { notIn: skipIds } } : {}),
+        },
+        select: {
+          id: true,
+          user: {
+            select: {
+              name: true,
+              image: true,
+              id: true,
+            },
+          },
+          conversationId: true,
+        },
+        orderBy: { conversation: { updatedAt: "asc" } },
+        take: 10,
+      });
+
+    return {
+      success: true,
+      conversationParticipant,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMesssage: error,
+    };
+  }
+}

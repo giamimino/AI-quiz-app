@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:socket": "NODE_OPTION='--loader ts-node/esm --trace-warnings' ts-node server.mts",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
@@ -27,9 +28,10 @@
     "pg": "^8.16.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-use-websocket": "^4.13.0",
     "recharts": "^3.3.0",
     "resend": "^6.4.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
@@ -40,6 +42,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "prisma": "^6.16.3",

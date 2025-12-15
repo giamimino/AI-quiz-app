@@ -32,8 +32,16 @@ html {
   overflow-x: hidden;
 }
 
+.w-min-40-max-25vw {
+  width: max(200px, 25vw);
+}
+
 .orange-box-shadow {
   box-shadow: 1px 1px 2px #d88488;
+}
+
+.dark-15-shadow {
+  box-shadow: 1px 1px 5px var(--color-dark-15);
 }
 
 .auto-text {

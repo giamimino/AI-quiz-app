@@ -181,6 +181,8 @@ model FriendRequest {
   receiver  User @relation("FriendRequestsReceived", fields: [receiverId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@unique([requesterId, receiverId])
 }
 
 model Friend {
