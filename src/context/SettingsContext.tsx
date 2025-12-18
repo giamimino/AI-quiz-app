@@ -1,10 +1,11 @@
 import { FriendRequestsType, FriendType } from "@/app/types/connections";
 import {
+  LoadingRefType,
   SettingsContextCacheRecordType,
   SettingsContextOpenType,
   SettingsContextType,
 } from "@/app/types/contexts";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useRef, useState } from "react";
 
 export const SettingsContext = createContext<SettingsContextType | null>(null);
 
@@ -14,6 +15,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [stateCache, setStateCache] = useState<SettingsContextCacheRecordType>(
     {}
   );
+  const loadingRef = useRef<LoadingRefType>({
+    friends: true,
+    requests: true,
+  });
 
   const structureMap = {
     friends: { title: "Friends" },
@@ -43,25 +48,25 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     console.log(data);
   };
 
-  const value = {
-    open: { isOpen: open, type },
-    toggle: () => setOpen((o) => !o),
-    close: () => setOpen(false),
-    changeType: (ty: SettingsContextOpenType) => setType(ty),
-    structure,
-    cache: stateCache ?? null,
-    setCache,
-    addCache,
-    clearCache: (dataKey: SettingsContextOpenType) =>
-      setStateCache((prev) => {
-        if (!prev) return prev;
-
-        return {
+  const value = useMemo(
+    () => ({
+      open: { isOpen: open, type },
+      toggle: () => setOpen((o) => !o),
+      close: () => setOpen(false),
+      changeType: (ty: SettingsContextOpenType) => setType(ty),
+      structure,
+      cache: stateCache ?? null,
+      setCache,
+      addCache,
+      clearCache: (dataKey: SettingsContextOpenType) =>
+        setStateCache((prev) => ({
           ...prev,
           [dataKey]: undefined,
-        };
-      }),
-  };
+        })),
+      loadingRef,
+    }),
+    [open, type, structure, stateCache]
+  );
 
   return (
     <SettingsContext.Provider value={value}>

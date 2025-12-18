@@ -1,11 +1,11 @@
 "use client";
 
-import { SettingsProvider } from "@/context/SettingsContext";
+import { MessagesProviders } from "./MessagesProvider";
 
 export default function MessagesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <SettingsProvider>{children}</SettingsProvider>;
+  return <MessagesProviders>{children}</MessagesProviders>;
 }

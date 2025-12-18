@@ -1965,31 +1965,148 @@ export async function handleGetConversationParticants({
     const session = userId ? null : await auth();
     const effectiveUserId = userId ?? session?.user?.id;
 
-    const conversationParticipant =
-      await prisma.conversationParticipant.findMany({
-        where: {
-          userId: effectiveUserId,
-          ...(skipIds ? { id: { notIn: skipIds } } : {}),
+    const particants = await prisma.conversation.findMany({
+      where: {
+        participants: {
+          some: { userId: effectiveUserId },
         },
-        select: {
-          id: true,
-          user: {
-            select: {
-              name: true,
-              image: true,
-              id: true,
+      },
+      include: {
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
             },
           },
-          conversationId: true,
         },
-        orderBy: { conversation: { updatedAt: "asc" } },
-        take: 10,
-      });
+        lastMessage: true,
+      },
+      take: 10,
+    });
 
     return {
       success: true,
-      conversationParticipant,
+      particants,
     };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMesssage: error,
+    };
+  }
+}
+
+export async function removeFriend({ friendId }: { friendId: string }) {
+  try {
+    await prisma.friend.delete({
+      where: { id: friendId },
+    });
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMesssage: error,
+    };
+  }
+}
+
+export async function getConversationMessages({
+  conversationId,
+}: {
+  conversationId: string;
+}) {
+  try {
+    const messages = (
+      await prisma.conversation.findUnique({
+        where: { id: conversationId },
+        select: {
+          messages: {
+            select: {
+              id: true,
+              text: true,
+              sender: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              createdAt: true,
+            },
+            orderBy: { createdAt: "desc" },
+            take: 20,
+          },
+        },
+      })
+    )?.messages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+    return {
+      messages,
+      success: true,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMesssage: error,
+    };
+  }
+}
+
+export async function sendMessage({
+  text,
+  senderId,
+  conversationId,
+  id,
+  createdAt,
+}: {
+  text: string;
+  senderId: string;
+  conversationId: string;
+  id: string;
+  createdAt: Date;
+}) {
+  try {
+    if (!text.trim()) return { success: false };
+
+    const resMessage = await prisma.$transaction(async (tx) => {
+      const res = await tx.message.create({
+        data: {
+          text,
+          senderId,
+          converstationId: conversationId,
+          id,
+          createdAt,
+        },
+        select: {
+          id: true,
+          createdAt: true,
+        },
+      });
+
+      await tx.conversation.update({
+        where: { id: conversationId },
+        data: {
+          lastMessageId: res.id,
+        },
+      });
+      return res;
+    });
+
+    if (!resMessage) return { success: false };
+
+    return { success: true, resMessage };
   } catch (error) {
     console.error(error);
     return {

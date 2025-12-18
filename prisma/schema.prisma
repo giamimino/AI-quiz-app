@@ -229,6 +229,7 @@ model Message {
   sender       User         @relation(fields: [senderId], references: [id])
 
   conversationAsLastMessage Conversation? @relation("LastMessage")
+  createdAt DateTime @default(now())
 }
 
 enum ChallengeType {

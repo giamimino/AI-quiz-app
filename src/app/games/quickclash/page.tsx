@@ -26,7 +26,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 
 export default function QuickClashPage() {
-  const { user, setUser } = useUserStore();
+  const { user } = useUserStore();
   const { status, setStatus, clearStatus } = useUserRoomStatusStore();
   const [rooms, setRooms] = useState<FireStoreRooms[]>([]);
   const [isPublic, setIsPublic] = useState(false);
@@ -178,17 +178,6 @@ export default function QuickClashPage() {
       });
       setRooms(result);
     });
-  }, []);
-
-  useEffect(() => {
-    if (user) return;
-    fetch("/api/user/get")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setUser(data.user);
-        }
-      });
   }, []);
 
   useEffect(() => {

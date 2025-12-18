@@ -1,11 +1,16 @@
 import React from "react";
-import { FriendRequestsType, FriendType } from "./connections";
+import { Conversation, FriendRequestsType, FriendType } from "./connections";
 
 export type SettingsContextCacheRecordType = Partial<
   Record<SettingsContextOpenType, FriendType[] | FriendRequestsType[]>
 >;
 
 export type SettingsContextOpenType = "requests" | "friends";
+
+export type LoadingRefType = {
+  friends: boolean;
+  requests: boolean;
+};
 
 export interface SettingsContextType {
   open: { isOpen: boolean; type: SettingsContextOpenType };
@@ -23,10 +28,13 @@ export interface SettingsContextType {
     dataKey: SettingsContextOpenType
   ) => void;
   clearCache: (dataKey: SettingsContextOpenType) => void;
+  loadingRef: React.MutableRefObject<LoadingRefType>;
 }
 
 export interface ChatContextType {
-  open: { conversationId: string; isOpen: boolean } | null;
-  toggle: () => void;
+  conversationId: string;
   close: () => void;
+  setConversationId: (id: string) => void;
+  conversation: null;
+  chatsLoadingRef: React.MutableRefObject<boolean>
 }
