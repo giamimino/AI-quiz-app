@@ -18,11 +18,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const loadingRef = useRef<LoadingRefType>({
     friends: true,
     requests: true,
+    settings: true
   });
 
   const structureMap = {
     friends: { title: "Friends" },
     requests: { title: "Friend requests" },
+    settings: { title: "Settings" },
   };
 
   const structure = structureMap[type];

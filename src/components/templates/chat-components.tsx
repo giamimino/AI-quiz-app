@@ -9,7 +9,10 @@ import { useState } from "react";
 
 export const ChatsContainer = ({ children }: Children) => {
   return (
-    <motion.div layout className="flex flex-col gap-2.5 p-3.5 rounded-3xl w-fit bg-dark-12">
+    <motion.div
+      layout
+      className="flex flex-col gap-2.5 p-3.5 rounded-3xl w-fit bg-dark-12"
+    >
       {children}
     </motion.div>
   );
@@ -218,15 +221,21 @@ export const ConversationParticipants = ({
   image,
   lastMessage,
   onClick,
+  selected,
 }: {
   name: string;
   image: string | null;
   lastMessage: string | undefined;
   onClick: () => void;
+  selected: boolean;
 }) => {
   return (
     <div
-      className="flex border items-center p-2 gap-5 border-dark-15 rounded-xl select-none relative cursor-pointer"
+      className={
+        `flex border items-center p-2 gap-5 
+        border-dark-15 rounded-xl select-none 
+        relative cursor-pointer ${selected && "bg-dark-25/80"}`
+      }
       onClick={onClick}
     >
       <div className="flex gap-2 items-center">
@@ -271,10 +280,9 @@ export const ConversationContainer = ({ children }: Children) => {
           className="w-3/5 h-full relative"
         >
           <button
-          onClick={close}
+            onClick={close}
             className={`w-6 h-6 cursor-pointer text-xs rounded-full bg-red-600 
-              flex justify-center items-center text-white absolute 
-              -trnaslate-x-1/2 left-1/2 top-0`}
+              flex justify-center items-center text-white mx-auto mb-2.5`}
           >
             <Icon icon={"mingcute:close-fill"} />
           </button>

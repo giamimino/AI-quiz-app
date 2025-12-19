@@ -12,6 +12,7 @@ import DefaultButton from "@/components/ui/default/default-button";
 import DefaultTitle from "@/components/ui/default/default-title";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
+  deleteConversation,
   getConversationMessages,
   handleCheckFriendRequests,
   handleGetConversationParticants,
@@ -48,6 +49,7 @@ import SettingsChatsLoading from "@/components/ui/loading/SettingsChatsLoading";
 import cuid from "cuid";
 import Image from "next/image";
 import { fetchMessages } from "@/utils/fetchMessages";
+import months from "@/data/months.json";
 
 export default function MessagesPage() {
   const [searchValue, setSearchValue] = useState("");
@@ -66,16 +68,17 @@ export default function MessagesPage() {
   const chatRef = useRef<HTMLDivElement>(null);
   const chatControls = useAnimation();
   const { user } = useUserStore();
-  const { open, structure, cache, setCache, clearCache, loadingRef } =
+  const { open, structure, cache, setCache, clearCache, loadingRef, close } =
     useSettings();
   const {
     conversationId,
     conversation,
-    close,
     setConversationId,
     chatsLoadingRef,
+    onDelete,
   } = useChatContext();
   const reachedRef = useRef(false);
+  const isMessagesAtEnd = useRef<boolean>(true);
 
   const handleScroll = async () => {
     if (!chatRef.current) return;
@@ -83,7 +86,11 @@ export default function MessagesPage() {
     const scrollTop = chatRef.current.scrollTop;
     const targetHeight = 200;
 
-    if (scrollTop <= targetHeight && !reachedRef.current) {
+    if (
+      scrollTop <= targetHeight &&
+      !reachedRef.current &&
+      !isMessagesAtEnd.current
+    ) {
       reachedRef.current = true;
       let oldestMessageId;
       let accDate = new Date().getTime();
@@ -100,16 +107,19 @@ export default function MessagesPage() {
       oldestMessageId =
         messages.find((m) => new Date(m.createdAt).getTime() === accDate)?.id ??
         "";
-      console.log(oldestMessageId);
       const res = await fetchMessages({
         url: "/api/user/get/conversation/messages",
         conversationId,
         oldestMessageId,
       });
-      console.log(res);
-      if (res.success && res.messages) {
-        handleScrollBy({ y: 220 });
-        setMessages((prev) => [...res.messages, ...prev]);
+      if (res.success) {
+        if (!res.hasMore) {
+          isMessagesAtEnd.current = true;
+        }
+        if (res.messages) {
+          handleScrollBy({ y: 220 });
+          setMessages((prev) => [...res.messages, ...prev]);
+        }
       }
     }
 
@@ -220,6 +230,7 @@ export default function MessagesPage() {
 
       setTimeout(() => scrollToBottom(), 100);
       messageInputRef.current?.focus();
+      setTimeout(() => (isMessagesAtEnd.current = false), 400);
     } catch (error) {
       console.error(error);
     }
@@ -233,8 +244,10 @@ export default function MessagesPage() {
         body: JSON.stringify({ userId: user?.id, friendId }),
       });
       const data = await res.json();
+      console.log(data);
 
       if (data.success) {
+        setConversations((prev) => [data.conversation, ...prev]);
         setErrors((prev) => [...prev, "started new conversation."]);
       } else {
         setErrors((prev) => [...prev, data.message]);
@@ -284,10 +297,48 @@ export default function MessagesPage() {
     } catch (error) {}
   };
 
+  const renderParticipantConversationHeader = () => {
+    const participant = participants.find(
+      (p) => p.conversationId === conversationId
+    );
+
+    if (!participant) return null;
+
+    return (
+      <div className="flex gap-2.5">
+        <Image
+          src={participant.user.image ?? ""}
+          alt="profile"
+          width={48}
+          height={48}
+          className="rounded-xl"
+        />
+        <div>
+          <h1>{participant.user.name}</h1>
+        </div>
+      </div>
+    );
+  };
+
+  const handleDeleteConversation = async () => {
+    try {
+      const res = await deleteConversation({ conversationId });
+      console.log(res);
+      setConversations((prev) => prev.filter((p) => p.id !== conversationId));
+      onDelete();
+      close();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const participants = useMemo(() => {
     if (!user?.id) return [];
     return conversations
-      .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
       .flatMap((c) => {
         const p = c.participants.find((p: any) => p.userId !== user.id);
         if (!p) return [];
@@ -311,8 +362,12 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!open.isOpen) return;
 
-    if (!cache?.[open.type]) {
+    if (!cache?.[open.type] && open.type !== "settings") {
       loaders[open.type]?.();
+    }
+
+    if (open.type === "settings") {
+      loadingRef.current.settings = false;
     }
   }, [open.isOpen, open.type]);
 
@@ -357,7 +412,7 @@ export default function MessagesPage() {
                 }
                 handleDeleteFriend={() => handleRemoveFriend(c.id)}
               />
-            ) : (
+            ) : open.type === "requests" ? (
               <FriendRequestsWrapper
                 key={c.id}
                 username={c.requester.username}
@@ -367,14 +422,59 @@ export default function MessagesPage() {
                   handleResponseFriendRequest(status, c.requester.id, c.id)
                 }
               />
-            )
+            ) : null
           )}
+
         {open.type === "friends" && cache?.friends?.length === 0 && (
           <p>You don’t have any friends yet.</p>
         )}
 
         {open.type === "requests" && cache?.requests?.length === 0 && (
           <p>No friend requests found.</p>
+        )}
+
+        {open.type === "settings" && (
+          <div>
+            <div>
+              <p className="flex gap-1">
+                <span className="text-grey-80 font-medium">Messages sent:</span>
+                <span className="text-grey-70">
+                  {conversation?._count.messages &&
+                    `${conversation._count.messages}`}
+                </span>
+              </p>
+              <p className="flex gap-1">
+                <span className="text-grey-80 font-medium">Creation date:</span>
+                <span className="text-grey-70">
+                  {conversation?.createdAt &&
+                    `${conversation.createdAt.getDate()} ${
+                      months[conversation.createdAt.getMonth()]
+                    } ${conversation.createdAt.getFullYear()}`}
+                </span>
+              </p>
+              <p className="flex gap-1">
+                <span className="text-grey-80 font-medium">
+                  Lastest message sent on:
+                </span>
+                <span className="text-grey-70">
+                  {conversation?.updatedAt &&
+                    `${conversation.updatedAt.getDate()} ${
+                      months[conversation.updatedAt.getMonth()]
+                    } ${conversation.updatedAt.getFullYear()}`}
+                </span>
+              </p>
+            </div>
+            <div className="flex gap-2.5">
+              <p>Do you want delete conversation?</p>
+              <button
+                className="rounded-lg text-red-600 font-bold 
+              flex justify-center items-center text-lg cursor-pointer"
+                onClick={handleDeleteConversation}
+              >
+                <Icon icon={"basil:trash-solid"} />
+              </button>
+            </div>
+          </div>
         )}
       </SettingsWrapper>
       <div className="flex gap-5">
@@ -415,30 +515,28 @@ export default function MessagesPage() {
                   image={p.user.image}
                   lastMessage={p.lastMessage}
                   onClick={() => handleOpenConversation(p.conversationId)}
+                  selected={p.conversationId === conversationId}
                 />
               ))}
           </div>
         </ChatsContainer>
         <ConversationContainer>
-          <Title>Conversation</Title>
-          <div className="flex flex-col gap-2.5 p-3.5 w-full h-full overflow-hidden rounded-2xl bg-dark-12 dark-15-shadow text-white">
-            <div className="py-2.5 w-full border-b border-b-grey-70">
-              {user?.image && (
-                <Image
-                  src={user.image}
-                  alt="profile"
-                  width={48}
-                  height={48}
-                  className="rounded-xl"
-                />
-              )}
+          <div className="flex flex-col pt-0 p-3.5 w-full h-full overflow-hidden rounded-2xl bg-dark-12 dark-15-shadow text-white">
+            <div className="py-2.5 w-full border-b border-b-grey-70 flex justify-between items-center">
+              {renderParticipantConversationHeader()}
+              <SettingsButton icon="solar:settings-bold" type="settings" />
             </div>
             <motion.div
               ref={chatRef}
-              className="max-h-100 overflow-scroll flex flex-col gap-2.5"
+              className="max-h-100 overflow-y-scroll flex flex-col gap-2.5"
               onScroll={handleScroll}
             >
-              <SettingsChatsLoading />
+              {!isMessagesAtEnd.current && <SettingsChatsLoading />}
+              {isMessagesAtEnd.current && (
+                <p className="text-grey-70 text-center p-2">
+                  You've reached at the end
+                </p>
+              )}
               {messages.map((m) => (
                 <div
                   key={`message-${m.id}-sender-${m.sender.id}`}
@@ -453,25 +551,37 @@ export default function MessagesPage() {
                 </div>
               ))}
             </motion.div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2.5">
               <input
                 ref={messageInputRef}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && messageInputRef.current) {
+                  if (
+                    e.key === "Enter" &&
+                    messageInputRef.current &&
+                    messageInputRef.current.value.trim()
+                  ) {
                     handleSendMessage(messageInputRef.current.value);
                     messageInputRef.current.value = "";
                   }
                 }}
                 className="border border-white rounded-lg w-full px-1.5 py-px"
               />
-              <button className="p-1 border border-white rounded-lg cursor-pointer">
+              <button
+                className="p-1 border border-white rounded-lg cursor-pointer"
+                onClick={() => {
+                  if (
+                    messageInputRef.current &&
+                    messageInputRef.current.value.trim()
+                  ) {
+                    handleSendMessage(messageInputRef.current.value);
+                    messageInputRef.current.value = "";
+                  }
+                }}
+              >
                 <Icon icon={"mingcute:send-line"} />
               </button>
             </div>
           </div>
-          {chatRef.current &&
-            chatRef.current.scrollTop + chatRef.current.clientHeight >=
-              chatRef.current.scrollHeight - 200 && <p>back?</p>}
         </ConversationContainer>
       </div>
     </div>

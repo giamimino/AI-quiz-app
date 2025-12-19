@@ -7,6 +7,7 @@ function errorResponse(message: string) {
     message,
   });
 }
+const LIMIT = 10;
 
 export async function POST(req: Request) {
   try {
@@ -32,18 +33,21 @@ export async function POST(req: Request) {
         createdAt: true,
       },
       skip: 1,
-      take: 10,
+      take: LIMIT + 1,
       cursor: { id: oldestMessageId },
       orderBy: { createdAt: "desc" },
     });
 
-    if(!messages || messages.length === 0) return errorResponse("No messages left.")
+    const hasMore = messages.length > LIMIT;
 
-    const reversedMessages = messages.reverse();
+    const slicedMessages = hasMore ? messages.slice(0, LIMIT) : messages;
+
+    const reversedMessages = slicedMessages.reverse();
 
     return NextResponse.json({
       success: true,
       messages: reversedMessages,
+      hasMore
     });
   } catch (err) {
     console.log(err);

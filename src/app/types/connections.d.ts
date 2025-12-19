@@ -44,6 +44,7 @@ export interface Message {
   converstationId: string;
   senderId: string;
   text: string;
+  createdAt: Date
 }
 
 export interface Conversation {

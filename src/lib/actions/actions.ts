@@ -1,49 +1,48 @@
 "use server";
+import { Answers } from "@/app/types/global";
+import { Challenge, TopicState, UserRoomStatus } from "@/app/types/store";
+import { db } from "@/configs/firebase";
 import {
-  ROOM_QUESTIONS_LENGTH_ERROR,
-  ROOM_NOT_ALLOWED_JOIN_ERROR,
-  ROOM_ALREADY_IN_ROOM_ERROR,
   ALL_FIELDS_REQUIRED_ERROR,
-  CHALLENGE_UPDATE_SUCCESS,
-  CHALLENGE_DELETE_SUCCESS,
-  ROOM_ALREADY_EXIST_ERROR,
-  ROOM_REACHED_LIMIT_ERROR,
-  ROOM_PLAYERS_LIMIT_ERROR,
+  ANSWER_ALREADY_DID_ERROR,
   ATTEMPT_DELETE_SUCCESS,
-  CHALLENGE_ACCESS_ERROR,
-  PLAYER_BLOCKED_SUCCESS,
-  ROOM_NOT_ALLOWED_ERROR,
-  ROOM_CANT_FOUND_ERROR,
-  ROOM_JOIN_SAME_ERROR,
   BANNED_PLAYER_ERROR,
+  CHALLENGE_ACCESS_ERROR,
+  CHALLENGE_DELETE_SUCCESS,
+  CHALLENGE_UPDATE_SUCCESS,
+  GAME_START_PERMISSION_ERROR,
+  GAME_START_PLAYERS_ERROR,
+  GAME_START_SUCCESS,
+  GENERIC_ERROR,
+  PLAYER_BLOCKED_SUCCESS,
   PLAYER_KICK_SUCCESS,
   PLAYER_LEFT_SUCCESS,
+  ROOM_ALREADY_EXIST_ERROR,
+  ROOM_ALREADY_IN_ROOM_ERROR,
+  ROOM_CANT_FOUND_ERROR,
+  ROOM_JOIN_SAME_ERROR,
   ROOM_JOIN_SUCCESS,
-  GENERIC_ERROR,
-  GAME_START_PERMISSION_ERROR,
-  GAME_START_SUCCESS,
-  GAME_START_PLAYERS_ERROR,
-  ANSWER_ALREADY_DID_ERROR,
+  ROOM_NOT_ALLOWED_ERROR,
+  ROOM_NOT_ALLOWED_JOIN_ERROR,
+  ROOM_PLAYERS_LIMIT_ERROR,
+  ROOM_QUESTIONS_LENGTH_ERROR,
+  ROOM_REACHED_LIMIT_ERROR,
 } from "@/constants/errors";
-import { prisma } from "../prisma";
-import { Answers } from "@/app/types/global";
-import { auth } from "../auth";
-import { Challenge, TopicState, UserRoomStatus } from "@/app/types/store";
-import {
-  collection,
-  deleteDoc,
-  getDocs,
-  addDoc,
-  getDoc,
-  setDoc,
-  query,
-  where,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-import { db } from "@/configs/firebase";
 import { FireStoreRooms } from "@/types/firestore";
 import cuid from "cuid";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
+import { auth } from "../auth";
+import { prisma } from "../prisma";
 
 export async function challangeDelete(id: string) {
   try {
@@ -1986,6 +1985,7 @@ export async function handleGetConversationParticants({
         lastMessage: true,
       },
       take: 10,
+      orderBy: { lastMessage: { createdAt: "desc" } },
     });
 
     return {
@@ -2107,6 +2107,54 @@ export async function sendMessage({
     if (!resMessage) return { success: false };
 
     return { success: true, resMessage };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMesssage: error,
+    };
+  }
+}
+
+export async function getConversationSettings({
+  conversationId,
+}: {
+  conversationId: string;
+}) {
+  try {
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        lastMessage: true,
+        _count: { select: { messages: true } },
+      },
+    });
+
+    return {
+      success: true,
+      conversation,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMesssage: error,
+    };
+  }
+}
+
+export async function deleteConversation({
+  conversationId,
+}: {
+  conversationId: string;
+}) {
+  try {
+    await prisma.conversation.delete({ where: { id: conversationId } });
   } catch (error) {
     console.error(error);
     return {
