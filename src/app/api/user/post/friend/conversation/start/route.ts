@@ -1,4 +1,4 @@
-import { CONVERSATION_START_ERROR, GENERIC_ERROR } from "@/constants/errors";
+import { CONVERSATION_START_ERROR } from "@/constants/errors";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import cuid from "cuid";

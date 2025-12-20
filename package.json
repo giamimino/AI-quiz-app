@@ -6,6 +6,7 @@
     "dev": "next dev --turbopack",
     "dev:socket": "NODE_OPTION='--loader ts-node/esm --trace-warnings' ts-node server.mts",
     "build": "next build --turbopack",
+    "build:socket": "next build --turbopack && tsc --project tsconfig.server.json",
     "start": "next start",
     "lint": "eslint"
   },
@@ -22,7 +23,7 @@
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "lodash.throttle": "^4.1.1",
-    "next": "15.5.4",
+    "next": "^16.1.0",
     "next-auth": "^5.0.0-beta.29",
     "openai": "^6.0.0",
     "pg": "^8.16.3",

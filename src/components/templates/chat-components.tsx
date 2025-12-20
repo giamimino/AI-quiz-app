@@ -11,7 +11,7 @@ export const ChatsContainer = ({ children }: Children) => {
   return (
     <motion.div
       layout
-      className="flex flex-col gap-2.5 p-3.5 rounded-3xl w-fit bg-dark-12"
+      className="flex flex-col gap-2.5 p-3.5 rounded-3xl w-fit bg-dark-12 max-md:w-full"
     >
       {children}
     </motion.div>
@@ -142,11 +142,13 @@ export const FriendWrapper = ({
   name,
   handleStartNewConversation,
   handleDeleteFriend,
+  redirectProfile
 }: {
   image: string | null;
   name: string;
   handleStartNewConversation: () => void;
   handleDeleteFriend: () => void;
+  redirectProfile: () => void
 }) => {
   const [sure, setSure] = useState(false);
   return (
@@ -158,7 +160,8 @@ export const FriendWrapper = ({
             alt={`${name}-friend-wrapper-profile`}
             width={42}
             height={42}
-            className="rounded-xl"
+            className="rounded-xl cursor-pointer"
+            onClick={redirectProfile}
           />
         )}
         <div className="flex flex-col justify-between h-full">
@@ -277,7 +280,7 @@ export const ConversationContainer = ({ children }: Children) => {
             opacity: { type: "tween", duration: 0.25, ease: "easeOut" },
             filter: { type: "tween", duration: 0.25, ease: "easeOut" },
           }}
-          className="w-3/5 h-full relative"
+          className="w-3/5 h-full relative max-md:w-full"
         >
           <button
             onClick={close}

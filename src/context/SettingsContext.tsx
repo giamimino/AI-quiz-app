@@ -47,7 +47,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     data: FriendRequestsType[] | FriendType[],
     dataKey: SettingsContextOpenType
   ) => {
-    console.log(data);
+    console.log(data, dataKey);
   };
 
   const value = useMemo(

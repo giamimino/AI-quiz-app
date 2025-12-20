@@ -28,7 +28,7 @@ import {
   ROOM_QUESTIONS_LENGTH_ERROR,
   ROOM_REACHED_LIMIT_ERROR,
 } from "@/constants/errors";
-import { FireStoreRooms } from "@/types/firestore";
+import { FireStoreRooms, Message } from "@/types/firestore";
 import cuid from "cuid";
 import {
   addDoc,
@@ -1145,6 +1145,7 @@ export async function CreateRoom({
       questions: null,
       status: "starting",
       startedAt: null,
+      messages: [],
     } as FireStoreRooms);
 
     return {
@@ -1715,19 +1716,19 @@ export async function handleEndBattle({ roomId }: { roomId: string }) {
   }
 }
 
-export async function handleGetGamesByUser({ userId }: { userId?: string }) {
-  try {
-    const session = userId ? null : await auth();
-    const effectiveUserId = userId ?? session?.user?.id;
-  } catch (error) {
-    console.error(error);
-    return {
-      success: false,
-      message: GENERIC_ERROR,
-      developerMessage: error,
-    };
-  }
-}
+// export async function handleGetGamesByUser({ userId }: { userId?: string }) {
+//   try {
+//     const session = userId ? null : await auth();
+//     const effectiveUserId = userId ?? session?.user?.id;
+//   } catch (error) {
+//     console.error(error);
+//     return {
+//       success: false,
+//       message: GENERIC_ERROR,
+//       developerMessage: error,
+//     };
+//   }
+// }
 
 export async function handleCountBettleStatus({ userId }: { userId?: string }) {
   try {
@@ -1966,6 +1967,7 @@ export async function handleGetConversationParticants({
 
     const particants = await prisma.conversation.findMany({
       where: {
+        ...(skipIds ? { id: { notIn: skipIds } } : {}),
         participants: {
           some: { userId: effectiveUserId },
         },
@@ -2161,6 +2163,45 @@ export async function deleteConversation({
       success: false,
       message: GENERIC_ERROR,
       developerMesssage: error,
+    };
+  }
+}
+
+export async function sendMessageInRoom({
+  roomId,
+  message,
+  senderId,
+  senderName,
+}: {
+  roomId: string;
+  message: string;
+  senderId: string;
+  senderName: string;
+}) {
+  try {
+    const roomRef = doc(db, "rooms", roomId)
+    const snap = await getDoc(roomRef)
+
+    if(!snap.exists()) return { success: false, message: ROOM_CANT_FOUND_ERROR }
+
+    const data = snap.data() as FireStoreRooms
+    const id = cuid()
+    const _message = { id, senderId, senderName, message } as Message
+
+    const newData = {...data, messages: [...(data.messages ?? []), _message]} as FireStoreRooms
+
+    await setDoc(roomRef, newData)
+
+    return {
+      success: true,
+      // _message
+    }
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: GENERIC_ERROR,
+      developerMessage: error,
     };
   }
 }

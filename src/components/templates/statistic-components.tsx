@@ -82,12 +82,13 @@ export function AreaChartComponentDefault({
   dataKey: string;
   xKey: string
 }) {
+
   return (
-    <BarChart data={data} width={600} height={300}>
-      <YAxis allowDecimals={false} domain={["dataMin", "dataMax"]} />
+    <BarChart data={data} width={350} height={300}>
+      <YAxis allowDecimals={false} domain={["dataMin - 1", "dataMax"]} />
       <XAxis stroke="white" dataKey={xKey} />
-      <Tooltip content={CustomTooltip} defaultIndex={2} cursor={false} />
-      <Bar dataKey={dataKey} fill="#c2b4a3" barSize={30} />
+      <Tooltip content={CustomTooltip} defaultIndex={1} cursor={false} />
+      <Bar dataKey={dataKey} fill="#c2b4a3" barSize={40} />
     </BarChart>
   );
 }

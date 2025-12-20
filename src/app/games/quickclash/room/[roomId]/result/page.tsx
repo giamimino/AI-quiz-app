@@ -35,7 +35,7 @@ export default function RoomGameResultPage({ params }: RoomPageProps) {
         },
       };
 
-    let result: { [key: string]: { name: string; image: string; id: string } } =
+    const result: { [key: string]: { name: string; image: string; id: string } } =
       {};
 
     for (let i = 0; i < room.players.length; i++) {
@@ -103,7 +103,7 @@ export default function RoomGameResultPage({ params }: RoomPageProps) {
   if (!room || !user)
     return (
       <div className="p-8 text-grey-70">
-        <p>Room can't be found or you dont have permision.</p>
+        <p>Room {`can't`} be found or you dont have permision.</p>
       </div>
     );
   return (

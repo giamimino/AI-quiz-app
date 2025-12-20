@@ -35,7 +35,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     getConversationSettings({ conversationId: cId }).then((res) => {
       if (res.success && res.conversation) {
-        console.log(res);
         setSateConversation(res.conversation);
       }
     });

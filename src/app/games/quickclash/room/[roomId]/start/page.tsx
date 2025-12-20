@@ -9,6 +9,8 @@ import QuestionsGenerating from "@/components/ui/animations/questions-generating
 import DefaultButton from "@/components/ui/default/default-button";
 import DefaultTitle from "@/components/ui/default/default-title";
 import DefaultWrapper from "@/components/ui/default/default-wrapper";
+import Error from "@/components/ui/error";
+import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import Loading from "@/components/ui/loading/Loading";
 import { db } from "@/configs/firebase";
 import {
@@ -36,7 +38,6 @@ export default function RoomStartPage({ params }: RoomPageProps) {
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
-  const [end, setEnd] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [start, setStart] = useState(false);
   const [pos, setPos] = useState(0);
@@ -52,7 +53,7 @@ export default function RoomStartPage({ params }: RoomPageProps) {
         },
       };
 
-    let result: { [key: string]: { name: string; thumb: string } } = {};
+    const result: { [key: string]: { name: string; thumb: string } } = {};
 
     for (let i = 0; i < room.players.length; i++) {
       if (room.players[i].id !== user.id) {
@@ -67,20 +68,22 @@ export default function RoomStartPage({ params }: RoomPageProps) {
     return result;
   }
 
-  const handleAnswer = async (answer: { answer: string, isCorrect: boolean }) => {
+  const handleAnswer = async (answer: {
+    answer: string;
+    isCorrect: boolean;
+  }) => {
     try {
       if (!user || !room) return;
       const res = await handleSubmitAnswer({
         userId: user.id,
         roomId,
         answer: { ...answer, questionId: room.questions![pos].id },
-        isCorrect: answer.isCorrect
+        isCorrect: answer.isCorrect,
       });
 
       if (res.success) {
         setPos((prev) => prev + 1);
         console.log(res.message);
-        
       }
     } catch (error) {
       console.error(error);
@@ -128,16 +131,16 @@ export default function RoomStartPage({ params }: RoomPageProps) {
       return;
     }
 
-    if(room.status === "ending") {
-      router.push("result")
+    if (room.status === "ending") {
+      router.push("result");
     }
 
     if (initialized) return;
     setStart(true);
-    const thisPl = room.players.find(p => p.id === user.id)
-    if(thisPl?.answers !== null && thisPl) {
-      setPos(thisPl.answers.length)
-    } 
+    const thisPl = room.players.find((p) => p.id === user.id);
+    if (thisPl?.answers !== null && thisPl) {
+      setPos(thisPl.answers.length);
+    }
     setInitialized(true);
 
     if (room.questions || room.createdBy !== user.id) return;
@@ -202,13 +205,13 @@ export default function RoomStartPage({ params }: RoomPageProps) {
 
   useEffect(() => {
     if (!room) return;
-    if(room.status === "ending") {
-      handleEndBattle({ roomId }).then(res => {
-        if(res.success) {
+    if (room.status === "ending") {
+      handleEndBattle({ roomId }).then((res) => {
+        if (res.success) {
           console.log("success");
           console.log(res);
         }
-      })
+      });
     }
   }, [room?.status]);
 
@@ -234,7 +237,7 @@ export default function RoomStartPage({ params }: RoomPageProps) {
   if (!room || !user)
     return (
       <div className="p-8 text-grey-70">
-        <p>Room can't be found or you dont have permision.</p>
+        <p>Room {`can't`} be found or you dont have permision.</p>
       </div>
     );
   if (start)
@@ -248,6 +251,19 @@ export default function RoomStartPage({ params }: RoomPageProps) {
 
   return (
     <div>
+      <AnimatePresence>
+        {messages.length > 0 && (
+          <ErrorsWrapper>
+            {messages.map((c, idx) => (
+              <Error
+                key={`${c}-${idx}-error`}
+                error={`${c} 0${idx}`}
+                handleClose={() => setMessages((prev) => prev.splice(idx, 1))}
+              />
+            ))}
+          </ErrorsWrapper>
+        )}
+      </AnimatePresence>
       {generating && !start && (
         <AnimatePresence>
           <QuestionsGenerating />;
@@ -272,14 +288,23 @@ export default function RoomStartPage({ params }: RoomPageProps) {
                   <QuizOption
                     key={`${op}-option-${idx}-id`}
                     option={op}
-                    onClick={(option) => handleAnswer({ answer: option, isCorrect: room.questions![pos].answer === option })}
+                    onClick={(option) =>
+                      handleAnswer({
+                        answer: option,
+                        isCorrect: room.questions![pos].answer === option,
+                      })
+                    }
                     selected={false}
                   />
                 ))}
               </QuizOptions>
             </QuizWrapper>
 
-            {pos === room.questions_length && room.status !== "ending" && room.status !== "end" && <DefaultButton label="Done" onClick={handleEnd} />}
+            {pos === room.questions_length &&
+              room.status !== "ending" &&
+              room.status !== "end" && (
+                <DefaultButton label="Done" onClick={handleEnd} />
+              )}
           </>
         )}
         <DefaultWrapper wFit p={{ p: 3 }} col gap={3}>
@@ -311,8 +336,6 @@ export default function RoomStartPage({ params }: RoomPageProps) {
           </DefaultWrapper>
         </DefaultWrapper>
       </main>
-
-
     </div>
   );
 }

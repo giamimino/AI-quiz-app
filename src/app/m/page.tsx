@@ -8,7 +8,6 @@ import {
   SettingsButton,
   SettingsWrapper,
 } from "@/components/templates/chat-components";
-import DefaultButton from "@/components/ui/default/default-button";
 import DefaultTitle from "@/components/ui/default/default-title";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
@@ -24,20 +23,15 @@ import {
 import { socket } from "@/lib/socketClient";
 import { useUserStore } from "@/zustand/useUserStore";
 import { Icon } from "@iconify/react";
-import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Conversation,
-  FriendConversationParticant,
-  FriendRequestsType,
-  FriendType,
 } from "../types/connections";
 import { useSettings } from "@/context/SettingsContext";
 import {
   animate,
   AnimatePresence,
   motion,
-  number,
-  useAnimation,
 } from "framer-motion";
 import Title from "@/components/ui/default/title";
 import { timeAgo } from "@/utils/timeAgo";
@@ -50,10 +44,13 @@ import cuid from "cuid";
 import Image from "next/image";
 import { fetchMessages } from "@/utils/fetchMessages";
 import months from "@/data/months.json";
+import { useRouter } from "next/navigation";
 
 export default function MessagesPage() {
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearchValue = useDebounce(searchValue);
+  console.log(debouncedSearchValue);
+  
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const messageInputRef = useRef<HTMLInputElement>(null);
   const [messages, setMessages] = useState<
@@ -66,7 +63,6 @@ export default function MessagesPage() {
   >([]);
   const [errors, setErrors] = useState<string[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
-  const chatControls = useAnimation();
   const { user } = useUserStore();
   const { open, structure, cache, setCache, clearCache, loadingRef, close } =
     useSettings();
@@ -79,6 +75,7 @@ export default function MessagesPage() {
   } = useChatContext();
   const reachedRef = useRef(false);
   const isMessagesAtEnd = useRef<boolean>(true);
+  const router = useRouter()
 
   const handleScroll = async () => {
     if (!chatRef.current) return;
@@ -92,7 +89,6 @@ export default function MessagesPage() {
       !isMessagesAtEnd.current
     ) {
       reachedRef.current = true;
-      let oldestMessageId;
       let accDate = new Date().getTime();
       for (let i = 0; i < messages.length; i++) {
         const createdAt = messages[i]?.createdAt;
@@ -104,7 +100,7 @@ export default function MessagesPage() {
           accDate = time;
         }
       }
-      oldestMessageId =
+      const oldestMessageId =
         messages.find((m) => new Date(m.createdAt).getTime() === accDate)?.id ??
         "";
       const res = await fetchMessages({
@@ -143,7 +139,7 @@ export default function MessagesPage() {
     });
   };
 
-  const handleScrollBy = ({ x, y }: { x?: number; y?: number }) => {
+  const handleScrollBy = ({ y }: { y?: number }) => {
     if (!chatRef.current) return;
 
     const start = chatRef.current.scrollTop;
@@ -244,7 +240,6 @@ export default function MessagesPage() {
         body: JSON.stringify({ userId: user?.id, friendId }),
       });
       const data = await res.json();
-      console.log(data);
 
       if (data.success) {
         setConversations((prev) => [data.conversation, ...prev]);
@@ -294,7 +289,9 @@ export default function MessagesPage() {
         sender: { id: user.id, name: user.name },
       });
       scrollToBottom();
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const renderParticipantConversationHeader = () => {
@@ -322,8 +319,7 @@ export default function MessagesPage() {
 
   const handleDeleteConversation = async () => {
     try {
-      const res = await deleteConversation({ conversationId });
-      console.log(res);
+      await deleteConversation({ conversationId });
       setConversations((prev) => prev.filter((p) => p.id !== conversationId));
       onDelete();
       close();
@@ -411,6 +407,7 @@ export default function MessagesPage() {
                   handleStartNewConversation(c.friend.id)
                 }
                 handleDeleteFriend={() => handleRemoveFriend(c.id)}
+                redirectProfile={() => router.push(`/profile/${c.friend.username}?id=${c.friend.id}`)}
               />
             ) : open.type === "requests" ? (
               <FriendRequestsWrapper
@@ -477,7 +474,7 @@ export default function MessagesPage() {
           </div>
         )}
       </SettingsWrapper>
-      <div className="flex gap-5">
+      <div className="flex gap-5 max-md:flex-col">
         <ChatsContainer>
           <div className="flex justify-between">
             <DefaultTitle title="Chats" font="600" text={20} />
@@ -501,7 +498,7 @@ export default function MessagesPage() {
               id="messagesPage_search_input_01"
               value={searchValue}
               onChange={(change) => setSearchValue(change.target.value)}
-              className="text-white outline-none pr-3 py-1.5"
+              className="text-white outline-none pr-3 py-1.5 w-full"
               placeholder="Search chats..."
             />
           </div>
@@ -534,7 +531,7 @@ export default function MessagesPage() {
               {!isMessagesAtEnd.current && <SettingsChatsLoading />}
               {isMessagesAtEnd.current && (
                 <p className="text-grey-70 text-center p-2">
-                  You've reached at the end
+                  {`You've`} reached at the end
                 </p>
               )}
               {messages.map((m) => (

@@ -17,7 +17,7 @@ import { useUserStore } from "@/zustand/useUserStore";
 import { Icon } from "@iconify/react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import React, { Activity, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import months from "@/data/months.json";
 
 export default function StatisticPage() {
@@ -124,7 +124,7 @@ export default function StatisticPage() {
           <AreaChartComponentLined data={activity} />
         </StatisticContianer>
       )}
-      <StatisticContianer>
+      <StatisticContianer wFit>
         {gameStats && (
           <AreaChartComponentDefault
             data={Object.entries(gameStats).map(([key, value]) => ({ label: key, value }))}

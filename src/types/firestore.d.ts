@@ -1,3 +1,10 @@
+export interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  message: string,
+}
+
 export interface FireStoreRooms {
   id: string;
   title: string;
@@ -22,6 +29,7 @@ export interface FireStoreRooms {
         answer: string;
       }[]
     | null;
+  messages: Message[];
 }
 
 export interface FireStoreRoomPlayerAnswer {

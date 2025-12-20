@@ -9,7 +9,6 @@ import Timer from "@/components/timer";
 import ErrorsWrapper from "@/components/ui/ErrorsWrapper";
 import DefaultButton from "@/components/ui/default/default-button";
 import Error from "@/components/ui/error";
-import Loading from "@/components/ui/loading/Loading";
 import { GENERIC_ERROR, RESULT_REQUEST_ERROR } from "@/constants/errors";
 import { challengeStart, sendResult } from "@/lib/actions/actions";
 import { useUserStore } from "@/zustand/useUserStore";

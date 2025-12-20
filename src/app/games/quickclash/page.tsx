@@ -15,15 +15,17 @@ import {
   handleStartRoom,
   joinRoom,
   kickPlayer,
+  sendMessageInRoom,
 } from "@/lib/actions/actions";
 import { FireStoreRooms } from "@/types/firestore";
 import { useUserRoomStatusStore } from "@/zustand/useUserRoomStatusStore";
 import { useUserStore } from "@/zustand/useUserStore";
+import { Icon } from "@iconify/react";
 import clsx from "clsx";
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
-import { AnimatePresence } from "framer-motion";
+import { animate, AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export default function QuickClashPage() {
   const { user } = useUserStore();
@@ -33,12 +35,29 @@ export default function QuickClashPage() {
   const [messages, setMessages] = useState<string[]>([]);
   const [roomId, setRoomId] = useState<string | null>(null);
   const router = useRouter();
+  const messageInputRef = useRef<HTMLInputElement>(null);
   const roomsRef = collection(db, "rooms");
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    if (!chatRef.current) return;
+
+    const start = chatRef.current.scrollTop;
+    const end = chatRef.current.scrollHeight;
+
+    animate(start, end, {
+      duration: 0.7,
+      ease: "easeInOut",
+      onUpdate(value) {
+        if (chatRef.current) chatRef.current.scrollTop = value;
+      },
+    });
+  };
 
   const FetchRooms = async () => {
     try {
       const data = await getDocs(roomsRef);
-      let result: any[] = [];
+      const result: any[] = [];
       data.forEach((doc) => {
         if (!rooms.some((room) => room.id === doc.id)) {
           result.push({ ...doc.data(), id: doc.id });
@@ -154,6 +173,23 @@ export default function QuickClashPage() {
     }
   };
 
+  const handleSendMessage = async (message: string) => {
+    try {
+      if (!message.trim() || !user || !roomId) return;
+
+      const res = await sendMessageInRoom({
+        message,
+        senderId: user.id,
+        senderName: user.name,
+        roomId,
+      });
+
+      scrollToBottom()
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const myroom = useMemo(() => {
     if (!rooms || !user) return null;
     let result = null;
@@ -169,7 +205,6 @@ export default function QuickClashPage() {
   useEffect(() => {
     onSnapshot(roomsRef, (snapshot) => {
       const result: any[] = [];
-      console.log(snapshot);
 
       snapshot.forEach((doc) => {
         if (!rooms.some((room) => room.id === doc.id)) {
@@ -324,13 +359,17 @@ export default function QuickClashPage() {
                     small
                   />
                 )}
-                {room.players.some(p => p.id === user?.id) && room.start && room.status === "playing" && (
-                  <DefaultButton
-                    small
-                    onClick={() => router.push(`/games/quickclash/room/${room.id}/start`)}
-                    icon="codicon:debug-start"
-                  />
-                )}
+                {room.players.some((p) => p.id === user?.id) &&
+                  room.start &&
+                  room.status === "playing" && (
+                    <DefaultButton
+                      small
+                      onClick={() =>
+                        router.push(`/games/quickclash/room/${room.id}/start`)
+                      }
+                      icon="codicon:debug-start"
+                    />
+                  )}
               </div>
             </DefaultWrapper>
           ))}
@@ -338,57 +377,109 @@ export default function QuickClashPage() {
       </DefaultWrapper>
 
       {myroom !== null && (
-        <DefaultWrapper p={{ p: 4.5 }} col gap={2.5}>
-          <DefaultTitle title="My Room" text={21} font="600" />
-          <div className="flex flex-col gap-2.5">
-            <DefaultTitle title="Players List" />
-            <DefaultWrapper p={{ p: 2.5 }}>
-              {myroom?.players.map((p) => (
-                <div
-                  key={p.id}
-                  className="w-full flex justify-between items-center"
+        <>
+          <DefaultWrapper p={{ p: 4.5 }} col gap={2.5}>
+            <DefaultTitle title="My Room" text={21} font="600" />
+            <div className="flex flex-col gap-2.5">
+              <DefaultTitle title="Players List" />
+              <DefaultWrapper p={{ p: 2.5 }}>
+                {myroom?.players.map((p) => (
+                  <div
+                    key={p.id}
+                    className="w-full flex justify-between items-center"
+                  >
+                    <DefaultTitle title={p.name} />
+                    {p.id !== user?.id ? (
+                      <div className="flex items-center gap-2.5">
+                        <UnderlineButton
+                          label="view profile"
+                          onClick={() =>
+                            router.push(`/profile/${p.username}?id=${p.id}`)
+                          }
+                        />
+                        <span className="text-orange-600">
+                          <UnderlineButton
+                            label="block user"
+                            onClick={() => handleBlockUser(p.id)}
+                            noTextColor
+                          />
+                        </span>
+                        <span className="text-red-600 hover:text-red-400">
+                          <UnderlineButton
+                            label="kick"
+                            onClick={() => handleKickPLayerFromRoom(p.id)}
+                            noTextColor
+                          />
+                        </span>
+                      </div>
+                    ) : (
+                      <UnderlineButton label="You" />
+                    )}
+                  </div>
+                ))}
+              </DefaultWrapper>
+            </div>
+            <div className="flex gap-2.5">
+              <button
+                onClick={handleRemoveRoom}
+                className="p-2.5 border border-red-500 bg-red-500/40 rounded-lg text-grey-70 cursor-pointer hover:bg-red-500 hover:text-white transition-all duration-500"
+              >
+                Remove Room
+              </button>
+              <DefaultButton label="Start" wFit onClick={handleStartGame} />
+            </div>
+          </DefaultWrapper>
+          <DefaultWrapper p={{ p: 4.5 }} col gap={2.5}>
+            <DefaultTitle title="Chat" text={26} font="600" />
+            <div>
+              <motion.div ref={chatRef} className="max-h-50 overflow-y-scroll flex flex-col gap-2.5">
+                {myroom?.messages.map((m) => (
+                  <div
+                    key={`message-${m.id}-sender-${m.senderId}`}
+                    className={`${
+                      m.senderId === user?.id ? "self-end" : "self-start"
+                    } p-2 border border-grey-70 rounded-lg w-fit max-w-7/10 text-white`}
+                  >
+                    <p className="border-b border-grey-70 pb-1">
+                      {m.senderName}
+                    </p>
+                    <h1 className="pt-1.5">{m.message}</h1>
+                  </div>
+                ))}
+              </motion.div>
+              <div className="flex gap-2 pt-2.5 text-white">
+                <input
+                  ref={messageInputRef}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      messageInputRef.current &&
+                      messageInputRef.current.value.trim()
+                    ) {
+                      handleSendMessage(messageInputRef.current.value);
+                      messageInputRef.current.value = "";
+                    }
+                  }}
+                  className="border border-white rounded-lg w-full px-1.5 py-px"
+                />
+                <button
+                  className="p-1 border border-white rounded-lg cursor-pointer"
+                  onClick={() => {
+                    if (
+                      messageInputRef.current &&
+                      messageInputRef.current.value.trim()
+                    ) {
+                      handleSendMessage(messageInputRef.current.value);
+                      messageInputRef.current.value = "";
+                    }
+                  }}
                 >
-                  <DefaultTitle title={p.name} />
-                  {p.id !== user?.id ? (
-                    <div className="flex items-center gap-2.5">
-                      <UnderlineButton
-                        label="view profile"
-                        onClick={() =>
-                          router.push(`/profile/${p.username}?id=${p.id}`)
-                        }
-                      />
-                      <span className="text-orange-600">
-                        <UnderlineButton
-                          label="block user"
-                          onClick={() => handleBlockUser(p.id)}
-                          noTextColor
-                        />
-                      </span>
-                      <span className="text-red-600 hover:text-red-400">
-                        <UnderlineButton
-                          label="kick"
-                          onClick={() => handleKickPLayerFromRoom(p.id)}
-                          noTextColor
-                        />
-                      </span>
-                    </div>
-                  ) : (
-                    <UnderlineButton label="You" />
-                  )}
-                </div>
-              ))}
-            </DefaultWrapper>
-          </div>
-          <div className="flex gap-2.5">
-            <button
-              onClick={handleRemoveRoom}
-              className="p-2.5 border border-red-500 bg-red-500/40 rounded-lg text-grey-70 cursor-pointer hover:bg-red-500 hover:text-white transition-all duration-500"
-            >
-              Remove Room
-            </button>
-            <DefaultButton label="Start" wFit onClick={handleStartGame} />
-          </div>
-        </DefaultWrapper>
+                  <Icon icon={"mingcute:send-line"} />
+                </button>
+              </div>
+            </div>
+          </DefaultWrapper>
+        </>
       )}
     </div>
   );

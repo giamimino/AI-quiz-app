@@ -3,7 +3,7 @@ export default async function EasyFetch({
   data,
 }: {
   url: string;
-  data?: Object;
+  data?: object;
 }) {
   try {
     const res = await fetch(url, {
